@@ -1,0 +1,1712 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Pro Football Career - Pro Edition</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #22c55e;
+            --danger: #ef4444;
+            --warning: #eab308;
+            --casino-purple: #a855f7;
+            --crystal-blue: #38bdf8;
+            --gold: #f59e0b;
+            --text: #f8fafc;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-image: radial-gradient(circle, rgba(34,197,94,0.05) 0%, rgba(15,23,42,1) 80%); }
+
+        .app-container { width: 100%; max-width: 1100px; background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.7); position: relative; border: 1px solid #334155; }
+
+        /* BİLDİRİM VE MODAL SİSTEMİ */
+        #in-game-alert-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.98);
+            border: 2px solid var(--accent);
+            color: var(--text);
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            z-index: 2000;
+            display: none;
+            text-align: center;
+            max-width: 90%;
+            font-size: 13px;
+        }
+        #in-game-alert-box.error { border-color: var(--danger); }
+
+        /* ÖZEL MODAL */
+        .game-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2500;
+        }
+        .modal-content {
+            background: #1e293b;
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 25px;
+            max-width: 650px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(34,197,94,0.3);
+        }
+
+        /* GİRİŞ EKRANI */
+        #splash-screen { text-align: center; padding: 40px 20px; position: relative; }
+        .splash-title { font-size: 40px; font-weight: bold; color: var(--accent); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 20px rgba(34,197,94,0.4); }
+        .splash-subtitle { color: #94a3b8; font-size: 15px; margin-bottom: 25px; }
+
+        #menu-screen { text-align: center; padding: 10px; display: none; }
+        .menu-title { font-size: 26px; font-weight: bold; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .menu-subtitle { color: #94a3b8; font-size: 13px; margin-bottom: 15px; }
+
+        .setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; text-align: left; background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid #334155; }
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 3px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; background: #1e293b; color: #fff; border: 1px solid #334155; border-radius: 6px; outline: none; font-size: 13px; }
+
+        #game-screen { display: none; }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; padding-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+
+        .top-nav { display: flex; gap: 4px; flex-wrap: wrap; margin: 12px 0; }
+        .nav-btn { background: #334155; color: #fff; border: none; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px; transition: 0.2s; position: relative; }
+        .nav-btn:hover, .nav-btn.active { background: var(--accent); color: #000; }
+        .nav-btn.disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+        
+        .badge-notify { position: absolute; top: -5px; right: -5px; background: var(--danger); color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 50%; font-weight: bold; display: none; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(95px, 1fr)); gap: 6px; margin-bottom: 12px; }
+        .stat-card { background: #0f172a; padding: 8px; border-radius: 6px; text-align: center; font-size: 10px; border: 1px solid #334155; }
+        .stat-value { font-size: 13px; font-weight: bold; color: var(--accent); margin-top: 2px; }
+
+        .progress-bar-bg { background: #334155; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 3px; }
+        .progress-bar-fill { height: 100%; width: 100%; background: var(--accent); }
+
+        .section-box { background: #0f172a; border-radius: 8px; padding: 15px; margin-top: 10px; display: none; border: 1px solid #334155; }
+        .section-box.active-section { display: block; }
+
+        .tv-scoreboard { background: radial-gradient(circle, #065f46 0%, #022c22 100%); border: 3px solid #facc15; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 12px; box-shadow: 0 0 20px rgba(250,204,21,0.25); position: relative; overflow: hidden; }
+        .tv-scoreboard::before { content: "⚽ STADYUM CANLI"; position: absolute; top: 4px; left: 10px; font-size: 9px; color: rgba(255,255,255,0.5); font-weight: bold; letter-spacing: 2px; }
+        .score-display { font-size: 32px; font-weight: bold; color: #fff; margin: 6px 0; letter-spacing: 3px; font-family: monospace; text-shadow: 2px 2px 4px rgba(0,0,0,0.6); }
+        .match-timer-badge { background: #ef4444; color: #fff; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; font-family: monospace; }
+
+        canvas.game-canvas { background: #15803d; border: 3px solid #fff; border-radius: 8px; cursor: crosshair; display: block; margin: 10px auto; }
+        .power-bar-container { width: 100%; max-width: 260px; height: 14px; background: #334155; border-radius: 7px; margin: 6px auto; overflow: hidden; }
+        .power-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #eab308, #ef4444); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11px; }
+        th, td { padding: 6px; text-align: center; border-bottom: 1px solid #334155; }
+        th { background: #1e293b; color: var(--accent); }
+
+        .btn-action { background: var(--accent); color: #000; border: none; padding: 8px 12px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; transition: 0.2s; font-size: 12px; }
+        .btn-action:hover { opacity: 0.9; }
+        .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .shop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        .shop-item { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 12px; text-align: center; }
+        .bet-match-item { background: #1e293b; border: 1px solid #334155; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        
+        .mail-item { background: #1e293b; border-left: 4px solid var(--accent); padding: 10px; border-radius: 4px; margin-bottom: 8px; font-size: 12px; cursor: pointer; }
+        .mail-item.unread { border-left-color: var(--warning); background: #26354a; }
+
+        .football-decor { display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; font-size: 22px; }
+
+        /* KUTU AÇILIŞ ANİMASYONU */
+        .box-anim {
+            font-size: 60px;
+            animation: bounceBox 0.6s infinite alternate ease-in-out;
+            margin: 20px 0;
+        }
+        @keyframes bounceBox {
+            from { transform: scale(1) rotate(-5deg); }
+            to { transform: scale(1.15) rotate(5deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- BİLDİRİM VE ONAY PENCERESİ -->
+    <div id="in-game-alert-box">
+        <div id="in-game-alert-text" style="margin-bottom: 10px; font-weight: bold;">Bildirim metni</div>
+        <div id="in-game-alert-btns">
+            <button class="btn-action" onclick="closeInGameAlert()" style="max-width: 100px; padding: 5px 10px; font-size: 11px; margin: 0 auto;">Tamam</button>
+        </div>
+    </div>
+
+    <!-- SEZON SONU SEREMONİSİ MODALI -->
+    <div id="season-end-modal" class="game-modal">
+        <div class="modal-content" style="border-color: var(--gold);">
+            <div style="font-size: 40px; margin-bottom: 10px;">🏆 ⭐ 🎊</div>
+            <h2 style="color: var(--gold); margin-top: 0; text-transform: uppercase;">Sezon Sona Erdi!</h2>
+            <div id="season-end-details" style="font-size: 13px; text-align: left; background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 15px;"></div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-action" onclick="finishSeasonModalAndAdvance()" style="background: var(--accent); color: #000;">🚀 Sonraki Sezona Geç</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALTIN KUTU MODALI -->
+    <div id="gold-box-modal" class="game-modal">
+        <div class="modal-content" style="border-color: var(--gold);">
+            <h2 style="color: var(--gold); margin-top: 0;">🎁 ALTIN KUTU KAZANDIN!</h2>
+            <div class="box-anim">📦✨</div>
+            <p id="gold-box-desc" style="font-size: 13px; color: #cbd5e1;">Harika bir performans sergileyerek nadide bir altın kutu elde ettin!</p>
+            <button class="btn-action" id="btn-open-gold-box" onclick="openGoldenBoxReward()" style="background: var(--gold); color: #000; font-size: 14px; padding: 10px;">Kutuyu Aç</button>
+        </div>
+    </div>
+
+    <!-- 0. SPLASH EKRANI (Djava Games) -->
+    <div id="splash-screen">
+        <div class="football-decor">⚽ 🏟️ 🏆 ⚽</div>
+        <div class="splash-title">🎮 Djava Games</div>
+        <div class="splash-subtitle">Ultimate Pro Football Career - Pro Edition</div>
+        
+        <div style="background: #1e293b; border: 1px solid #334155; padding: 15px; border-radius: 8px; max-width: 650px; margin: 0 auto 20px auto; text-align: left; font-size: 12px; color: #94a3b8;">
+            <h4 style="margin-top: 0; color: var(--accent); text-align: center;">📖 Kullanma Kılavuzu (Oyun Kuralları)</h4>
+            <p><b>1. Kariyer Başlangıcı:</b> Oyuncu özelliklerinizi, mevkinizi ve liginizi seçerek kariyerinize başlayın. (Not: Başlangıçta doğrudan 1. liglerden başlayamazsınız, ancak performansınız arttıkça teklif gelecektir!)</p>
+            <p><b>2. Lig ve Fikstür Dengesi:</b> 16 ve üzeri kulüplü liglerde 2 devreli, 16'dan az kulüplü liglerde 4 devreli adil fikstür uygulanır. Siz maç yaptıkça tüm lig maçları eş zamanlı ilerler.</p>
+            <p><b>3. Maç & Simülasyon:</b> Maçlar 2D canlı simülasyonla oynanır. Enerjiniz 0 olduğunda sadece simülasyon yapılabilir (arka arkaya en fazla 3 kez). Simülasyon +%5-6 enerji verirken refahı %1 düşürür.</p>
+            <p><b>4. Kristal Top & Ödüller:</b> Kristal Top şansı %5'e yükseltilmiştir. Ballon d'Or, Sezonun Gol Kralı, En İyi Kaleci ve Djava Şampiyonlar Şampiyonu turnuvası sizi bekliyor!</p>
+            <p style="text-align: center; margin-bottom: 0; color: #facc15; font-weight: bold;">✨ Oyunun Yaratıcısı: Cavad Asgarli AZE</p>
+        </div>
+
+        <button class="btn-action" onclick="goToMenu()" style="max-width: 220px; margin: 0 auto; padding: 12px; font-size: 15px;">🚀 Başla / Start</button>
+    </div>
+
+    <!-- 1. GİRİŞ VE OYUNCU OLUŞTURMA -->
+    <div id="menu-screen">
+        <div class="football-decor" style="font-size:18px; margin-bottom:5px;">⭐ ⚽ 🌟</div>
+        <div class="menu-title">⚽ Ultimate Pro Football Career</div>
+        <div class="menu-subtitle">Profesyonel Kariyer Modu & Dengeli Fikstür - Yaratıcı: Cavad Asgarli AZE</div>
+
+        <div class="setup-grid">
+            <div>
+                <h3 style="margin-top:0; color:var(--accent); font-size:14px;">👤 Oyuncu Özellikleri</h3>
+                <div class="form-group">
+                    <label>Ad ve Soyad:</label>
+                    <input type="text" id="start-name" value="Ali Mammadov">
+                </div>
+                <div class="form-group">
+                    <label>Yaş Seçimi:</label>
+                    <select id="start-age">
+                        <option value="16">16 Yaş</option>
+                        <option value="17">17 Yaş</option>
+                        <option value="18" selected>18 Yaş</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Mevki:</label>
+                    <select id="start-position">
+                        <option value="ST">⚽ ST - Forvet</option>
+                        <option value="CAM">🧠 CAM / CM - Ortasaha (Asist Bonusu)</option>
+                        <option value="CB">🛡️ CB - Defans</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Milli Takım (Genişletilmiş Liste):</label>
+                    <select id="start-nation">
+                        <option value="🇦🇿 Azerbaycan">🇦🇿 Azerbaycan</option>
+                        <option value="🇹🇷 Türkiye">🇹🇷 Türkiye</option>
+                        <option value="🇬🇧 İngiltere">🇬🇧 İngiltere</option>
+                        <option value="🇪🇸 İspanya">🇪🇸 İspanya</option>
+                        <option value="🇩🇪 Almanya">🇩🇪 Almanya</option>
+                        <option value="🇫🇷 Fransa">🇫🇷 Fransa</option>
+                        <option value="🇮🇹 İtalya">🇮🇹 İtalya</option>
+                        <option value="🇧🇷 Brezilya">🇧🇷 Brezilya</option>
+                        <option value="🇦🇷 Arjantin">🇦🇷 Arjantin</option>
+                        <option value="🇵🇹 Portekiz">🇵🇹 Portekiz</option>
+                        <option value="🇳🇱 Hollanda">🇳🇱 Hollanda</option>
+                        <option value="🇧🇪 Belçika">🇧🇪 Belçika</option>
+                        <option value="🇭🇷 Hırvatistan">🇭🇷 Hırvatistan</option>
+                        <option value="🇲🇽 Meksika">🇲🇽 Meksika</option>
+                        <option value="🇺🇸 ABD">🇺🇸 ABD</option>
+                        <option value="🇯🇵 Japonya">🇯🇵 Japonya</option>
+                        <option value="🇲🇦 Fas">🇲🇦 Fas</option>
+                        <option value="🇰🇷 Güney Kore">🇰🇷 Güney Kore</option>
+                        <option value="🇸🇳 Senegal">🇸🇳 Senegal</option>
+                        <option value="🇺🇾 Uruguay">🇺🇾 Uruguay</option>
+                        <option value="🇨🇴 Kolombiya">🇨🇴 Kolombiya</option>
+                        <option value="🇨🇭 İsviçre">🇨🇭 İsviçre</option>
+                        <option value="🇵🇱 Polonya">🇵🇱 Polonya</option>
+                        <option value="🇬🇪 Gürcistan">🇬🇪 Gürcistan</option>
+                        <option value="🇪🇬 Mısır">🇪🇬 Mısır</option>
+                        <option value="🇸🇪 İsveç">🇸🇪 İsveç</option>
+                        <option value="🏴󠁧󠁢󠁳󠁣󠁴󠁿 İskoçya">🏴󠁧󠁢󠁳󠁣󠁴󠁿 İskoçya</option>
+                        <option value="🇳🇴 Norveç">🇳🇴 Norveç</option>
+                        <option value="🇬🇳 Gine">🇬🇳 Gine</option>
+                        <option value="🇩🇰 Danimarka">🇩🇰 Danimarka</option>
+                        <option value="🇦🇹 Avusturya">🇦🇹 Avusturya</option>
+                        <option value="🇳🇬 Nijerya">🇳🇬 Nijerya</option>
+                        <option value="🇨🇮 Fildişi Sahili">🇨🇮 Fildişi Sahili</option>
+                        <option value="🇩🇿 Cezayir">🇩🇿 Cezayir</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <h3 style="margin-top:0; color:#38bdf8; font-size:14px;">🎨 Görünüm Ve Lig Seçimi</h3>
+                <div class="form-group">
+                    <label>Saç Modeli:</label>
+                    <select id="start-hair-style" onchange="previewFace()">
+                        <option value="short">Kısa Saç</option>
+                        <option value="long">Uzun Topuz</option>
+                        <option value="curly">Kıvırcık</option>
+                        <option value="bald">Kel</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ten Rengi:</label>
+                    <select id="start-skin" onchange="previewFace()">
+                        <option value="#f59e0b">Buğday</option>
+                        <option value="#fde047">Açık</option>
+                        <option value="#78350f">Esmer</option>
+                    </select>
+                </div>
+                
+                <div style="text-align:center; margin:6px 0;">
+                    <canvas id="menuFaceCanvas" width="60" height="60" style="background:#1e293b; border-radius:50%; border:2px solid var(--accent);"></canvas>
+                </div>
+
+                <div class="form-group">
+                    <label>Başlangıç Ligi (Yalnızca 2. Ligler ve Açık Ligler):</label>
+                    <select id="start-league">
+                        <option value="ESP2">🇪🇸 İspanya Segunda División (2. Lig)</option>
+                        <option value="ENG2">🇬🇧 EFL Championship (2. Lig)</option>
+                        <option value="ITA2">🇮🇹 İtalya Serie B (2. Lig)</option>
+                        <option value="GER2">🇩🇪 Almanya 2. Bundesliga (2. Lig)</option>
+                        <option value="FRA2">🇫🇷 Fransa Ligue 2 (2. Lig)</option>
+                        <option value="AZE1">🇦🇿 Misli Premyer Liqası (Azerbaycan)</option>
+                        <option value="TUR1">🇹🇷 Trendyol Süper Lig (Türkiye)</option>
+                        <option value="MAR1">🇲🇦 Botola Pro (Fas)</option>
+                        <option value="POR1">🇵🇹 Primeira Liga (Portekiz)</option>
+                        <option value="BEL1">🇧🇪 Pro League (Belçika)</option>
+                        <option value="NED1">🇳🇱 Eredivisie (Hollanda)</option>
+                        <option value="MEX1">🇲🇽 Liga MX (Meksika)</option>
+                        <option value="COL1">🇨🇴 Categoría Primera A (Kolombiya)</option>
+                        <option value="CRO1">🇭🇷 HNL (Hırvatistan)</option>
+                        <option value="SUI1">🇨🇭 Super League (İsviçre)</option>
+                        <option value="USA1">🇺🇸 MLS (ABD)</option>
+                        <option value="JPN1">🇯🇵 J1 League (Japonya)</option>
+                    </select>
+                </div>
+
+                <button class="btn-action" onclick="initNewCareer()" style="margin-top:5px; padding:10px; font-size:13px;">Kariyer Başlat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. OYUN EKRANI -->
+    <div id="game-screen">
+        <header>
+            <div>
+                <h3 style="margin:0; font-size:15px;" id="hdr-player-name">Oyuncu Adı</h3>
+                <small style="color:#94a3b8; font-size:11px;" id="hdr-club-info">Kulüp: - | Durum: Rotasyon</small>
+            </div>
+            <div id="header-action-buttons">
+                <button onclick="toggleBGM()" id="btn-music" class="match-lockable" style="background:#8b5cf6; color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">🎵 Müzik: Kapalı</button>
+                <button onclick="saveGame()" class="match-lockable" style="background:#3b82f6; color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">💾 Kaydet</button>
+                <button onclick="loadGame()" class="match-lockable" style="background:#22c55e; color:#000; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">📂 Yükle</button>
+                <button onclick="exitToMenu()" class="match-lockable" style="background:var(--danger); color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">🚪 Menü</button>
+            </div>
+        </header>
+
+        <div class="stats-grid" style="margin-top:10px;">
+            <div class="stat-card"><div>Reyting (OVR)</div><div class="stat-value" id="stat-ovr">52.0</div></div>
+            <div class="stat-card"><div>Yaş / Sezon</div><div class="stat-value" id="stat-age-season" style="color:#38bdf8;">18 Yaş (2026)</div></div>
+            <div class="stat-card"><div>Deneyim (XP)</div><div class="stat-value" id="stat-xp">0 XP</div></div>
+            <div class="stat-card">
+                <div>Enerji</div>
+                <div class="stat-value" id="stat-energy">100%</div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" id="energy-bar"></div></div>
+            </div>
+            <div class="stat-card">
+                <div>Refah</div>
+                <div class="stat-value" id="stat-welfare" style="color:#eab308;">70%</div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" id="welfare-bar" style="background:#eab308;"></div></div>
+            </div>
+            <div class="stat-card"><div>Piyasa Değeri</div><div class="stat-value" id="stat-market-val" style="color:#38bdf8;">€200K</div></div>
+            <div class="stat-card"><div>Bütçe</div><div class="stat-value" id="stat-money">€100</div></div>
+            <div class="stat-card"><div>Kristal Top</div><div class="stat-value" id="stat-crystals" style="color:var(--crystal-blue);">💎 0</div></div>
+            <div class="stat-card"><div>Durum</div><div class="stat-value" id="stat-squad-role" style="color:var(--warning);">Rotasyon</div></div>
+        </div>
+
+        <div class="top-nav" id="main-nav-bar">
+            <button class="nav-btn active match-lockable" onclick="safeShowTab('tab-dashboard')">🏠 Profil & Müze</button>
+            <button class="nav-btn" onclick="safeShowTab('tab-match')">⚽ Maç Merkezi</button>
+            <button class="nav-btn match-lockable" onclick="safeShowTab('tab-fixture')">📅 Fikstür</button>
+            <button class="nav-btn match-lockable" onclick="safeShowTab('tab-league')">📊 Puan Durumu</button>
+            <button class="nav-btn match-lockable" onclick="safeShowTab('tab-global')">🌐 Tüm Ligler</button>
+            <button class="nav-btn match-lockable" onclick="safeShowTab('tab-ballondor')" style="background:#d97706;">🏆 Ballon d'Or</button>
+            <button class="nav-btn match-lockable" onclick="safeShowTab('tab-champions')" style="background:#0284c7;">👑 Djava Turnuva</button>
+            <button class="nav-btn match-lockable" onclick="safeShowTab('tab-history')" style="background:#475569;">📜 Geçmiş</button>
+            <button class="nav-btn match-lockable" onclick="safeShowTab('tab-transfers')">🔁 Transferler <span id="transfer-badge" class="badge-notify">0</span></button>
+            <button class="nav-btn match-lockable" onclick="safeShowTab('tab-training')">🏋️ Antrenman</button>
+            <button class="nav-btn match-lockable" onclick="safeShowTab('tab-shop')" style="background:#2563eb;">🏬 Mağaza</button>
+            <button class="nav-btn match-lockable" onclick="safeShowTab('tab-casino')" style="background:var(--casino-purple);">🎰 İddaa & Çark</button>
+            <button class="nav-btn match-lockable" onclick="safeShowTab('tab-bank')" style="background:#10b981; color:#000;">🏦 Djava Bank</button>
+            <button class="nav-btn match-lockable" onclick="safeShowTab('tab-mail')" style="background:#0ea5e9;">📬 Posta <span id="mail-badge" class="badge-notify">0</span></button>
+        </div>
+
+        <!-- TAB 1: PROFİL -->
+        <div id="tab-dashboard" class="section-box active-section">
+            <h3 style="margin-top:0;">🎭 Oyuncu Profili Ve Kupa Müzesi</h3>
+            <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
+                <canvas id="faceCanvas" width="85" height="85" style="background:#1e293b; border-radius:50%; border:3px solid var(--accent);"></canvas>
+                <div style="font-size:12px;">
+                    <p><b>Mevki:</b> <span id="prof-pos" style="color:var(--accent); font-weight:bold;">ST</span> | <b>Milliyet:</b> <span id="prof-nation">-</span></p>
+                    <p><b>Mevcut Kulüp:</b> <span id="prof-club">-</span> | <b>Milli Durum:</b> <span id="prof-nt-status" style="color:#eab308;">Davet bekliyor</span></p>
+                    <p><b>Kadro Statüsü:</b> <span id="prof-role" style="color:var(--warning);">Rotasyon Oyuncusu</span></p>
+                    <p><b>Sezon Gol/Asist:</b> <span id="prof-goals">0 Gol</span> | <span id="prof-assists" style="color:#38bdf8;">0 Asist</span></p>
+                    <p><b>Kariyer Toplam:</b> <span id="prof-career-goals">0 Gol</span> | <span id="prof-career-assists" style="color:#38bdf8;">0 Asist</span></p>
+                </div>
+            </div>
+            
+            <div style="background:#1e293b; border:1px solid #334155; padding:12px; border-radius:8px; margin-top:15px;">
+                <h4 style="margin:0 0 5px 0; color:var(--accent);">📈 Kariyer Performans Dinamiği</h4>
+                <p style="font-size:11px; color:#94a3b8; margin-bottom:10px;">Her sezon performansınıza göre kariyer eğriniz güncellenir.</p>
+                <canvas id="perfGraph" width="1000" height="150" style="background:#0f172a; border-radius:6px; border:1px solid #334155; width:100%; max-width:100%;"></canvas>
+            </div>
+
+            <div style="background:#0f172a; border:1px solid #334155; padding:12px; border-radius:8px; margin-top:15px;">
+                <h4 style="margin:0 0 8px 0; color:var(--crystal-blue);">💎 Kristal Top Kasası & Dönüştürücü</h4>
+                <p style="font-size:11px; color:#94a3b8; margin-bottom:10px;">Kristal toplar %5 şansla çarktan veya altın kutulardan çıkar. Bunları XP'ye, paraya dönüştürebilir veya kredi borcunu kapatmak için kullanabilirsin!</p>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn-action" onclick="convertCrystal('xp')" style="background:var(--crystal-blue); color:#000; flex:1; min-width:140px;">💎 ➔ 500 XP Çevir (1 Adet)</button>
+                    <button class="btn-action" onclick="convertCrystal('money')" style="background:#eab308; color:#000; flex:1; min-width:140px;">💎 ➔ €15,000 Çevir (1 Adet)</button>
+                    <button class="btn-action" onclick="convertCrystal('debt')" style="background:#10b981; color:#000; flex:1; min-width:140px;">💎 ➔ Krediyi Kapat (3 Adet)</button>
+                </div>
+            </div>
+
+            <hr style="border:0; border-top:1px solid #334155; margin:15px 0;">
+            <h4 style="margin:0 0 10px 0; color:#eab308;">🏆 Müze & Bireysel Ödüller</h4>
+            <div id="trophy-cabinet"><p style="color:#94a3b8; font-size:11px;">Henüz kupa veya bireysel ödül yok.</p></div>
+        </div>
+
+        <!-- TAB 2: MAÇ MERKEZİ -->
+        <div id="tab-match" class="section-box">
+            <div class="tv-scoreboard">
+                <span class="match-timer-badge">⏱️ <span id="match-min">0</span>'</span>
+                <div id="match-league-title" style="font-size:12px; color:#fde047; margin-top:4px; font-weight:bold; text-transform:uppercase;">Lig Maçı</div>
+                <div class="score-display"><span id="home-team-name">Kulüp 1</span> <span style="color:#facc15;">VS</span> <span id="away-team-name">Kulüp 2</span></div>
+                <div id="match-score-container" style="font-size: 24px; font-weight: bold; color: #22c55e; margin-top: 2px;"><span id="match-score">0 - 0</span></div>
+            </div>
+
+            <!-- CANLI 2D SAHA ANİMASYONU (11v11) -->
+            <div id="match-pitch-simulation" style="background:#0f172a; padding:10px; border-radius:8px; border:1px solid #334155; margin-bottom:12px;">
+                <canvas id="livePitchCanvas" width="580" height="150" style="background:#15803d; border:2px solid #fff; border-radius:6px; display:block; margin:0 auto; max-width:100%;"></canvas>
+                <div id="match-ticker-box" style="margin-top:8px; background:#1e293b; padding:8px; border-radius:6px; border:1px solid #334155; font-size:12px; color:#38bdf8; text-align:center; font-family:monospace; min-height:28px;">
+                    📢 Maç akışı bekleniyor...
+                </div>
+            </div>
+
+            <div id="sim-view" style="text-align:center;">
+                <div id="season-start-banner" style="display:none; margin-bottom:12px; background:#1e293b; padding:12px; border-radius:8px; border:2px solid var(--accent);">
+                    <h4 style="color:var(--accent); margin:0 0 8px 0;">🌟 Yeni Sezona Hazırsınız!</h4>
+                    <button class="btn-action" onclick="startNewSeasonMatches()" style="max-width:250px; margin:0 auto; padding:10px; font-size:13px;">🚀 Sezona Başla</button>
+                </div>
+
+                <div id="match-controls-btns" style="display:flex; justify-content:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+                    <button class="btn-action" id="btn-start-match" onclick="promptStartMatch()" style="max-width:200px;">⚽ Maçı Başlat (Oyna)</button>
+                    <button class="btn-action" id="btn-sim-match" onclick="simulateMatchWithoutPlaying()" style="max-width:200px; background:#eab308; color:#000;">⚡ Simüle Et (Oynamadan)</button>
+                    <button class="btn-action" id="btn-speed" onclick="toggleMatchSpeed()" style="max-width:130px; background:#3b82f6; color:#fff;">⏩ Hız: 1x</button>
+                </div>
+                <p id="match-event-text" style="color:var(--accent); font-weight:bold; min-height:20px; font-size:13px;">Maçın başlaması bekleniyor...</p>
+            </div>
+
+            <div id="strike-view" style="display:none; text-align:center;">
+                <h3 id="mini-game-title" style="color:var(--warning); margin:5px 0; font-size:14px;">⚡ GOL FIRSATI!</h3>
+                <p style="font-size:11px; color:#94a3b8;" id="mini-game-desc">İsabetli bir şut çekmek için kaleye tıkla ve gücü ayarla!</p>
+                <canvas id="pitchCanvas" class="game-canvas" width="580" height="230"></canvas>
+                <div style="text-align:center; margin-top:5px;">
+                    <div><span>Şut/Pas Gücü</span>: <strong id="power-num">50%</strong></div>
+                    <div class="power-bar-container"><div class="power-bar-fill" id="power-fill"></div></div>
+                    <button id="btn-strike-action" onclick="lockPowerAndExecute()" style="background:#eab308; color:#000; border:none; padding:7px 16px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">⚡ Gücü Onayla ve Vur!</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: FİKSTÜR -->
+        <div id="tab-fixture" class="section-box">
+            <h3>📅 Lig Fikstürü (Adil Eşit Maç Takvimi)</h3>
+            <p style="font-size:11px; color:#94a3b8;">Her kulüp aynı sayıda maç oynar ve oynadıkça puan tablosu güncellenir.</p>
+            <div id="fixture-list-container"></div>
+        </div>
+
+        <!-- TAB 4: LİG PUAN DURUMU -->
+        <div id="tab-league" class="section-box">
+            <h3 id="league-name-title">📊 Lig Puan Durumu</h3>
+            <table>
+                <thead><tr><th>Sıra</th><th>Kulüp</th><th>Oyn</th><th>Gal</th><th>Ber</th><th>Mağ</th><th>AV</th><th>Puan</th></tr></thead>
+                <tbody id="league-tbody"></tbody>
+            </table>
+        </div>
+
+        <!-- TAB 5: TÜM LİGLER -->
+        <div id="tab-global" class="section-box">
+            <h3>🌐 Tüm Lig Tabloları</h3>
+            <div class="form-group" style="max-width:320px;">
+                <label>Lig Seç:</label>
+                <select id="global-league-select" onchange="renderGlobalLeagueTable()"></select>
+            </div>
+            <table>
+                <thead><tr><th>Sıra</th><th>Kulüp</th><th>Oyn</th><th>Gal</th><th>Ber</th><th>Mağ</th><th>AV</th><th>Puan</th></tr></thead>
+                <tbody id="global-league-tbody"></tbody>
+            </table>
+        </div>
+
+        <!-- TAB 6: BALLON D'OR & KALECİLER SIRALAMASI -->
+        <div id="tab-ballondor" class="section-box">
+            <h3 style="color:var(--gold);">🏆 Ballon d'Or & Dünyanın En İyileri</h3>
+            <p style="font-size:11px; color:#94a3b8;">Ballon d'Or yarışında sadece saha içi oyuncular yer alır (29 oyuncu). Kaleciler ise "En İyi Kaleci" kategorisinde yarışır (14 kaleci)! Her sezon sıralamalar sıfırlanır ve geçmiş sezonlar tarihçede saklanır. OVR az təsir edir, real futbol kimi formaya baxılır.</p>
+            
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:15px; margin-top:10px;">
+                <div style="background:#1e293b; padding:10px; border-radius:8px; border:1px solid #334155;">
+                    <h4 style="color:var(--gold); margin-top:0;">🌟 Ballon d'Or Sıralaması (29 Oyuncu)</h4>
+                    <table>
+                        <thead><tr><th>Sıra</th><th>Oyuncu</th><th>Kulüp</th><th>OVR</th><th>G/A</th><th>Puan</th></tr></thead>
+                        <tbody id="ballondor-tbody"></tbody>
+                    </table>
+                </div>
+                <div style="background:#1e293b; padding:10px; border-radius:8px; border:1px solid #334155;">
+                    <h4 style="color:var(--crystal-blue); margin-top:0;">🧤 En İyi Kaleciler (14 Kaleci)</h4>
+                    <table>
+                        <thead><tr><th>Sıra</th><th>Kaleci</th><th>Kulüp</th><th>OVR</th><th>Kurtarış</th><th>Puan</th></tr></thead>
+                        <tbody id="gk-rankings-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div style="margin-top:15px;">
+                <h4 style="color:var(--gold);">⭐ Djava The Best (Yılın En İyi Gelişeni)</h4>
+                <div id="djava-the-best-box" style="background:#1e293b; padding:10px; border-radius:8px; border:1px solid #334155; font-size:12px; margin-bottom:10px;">
+                    Henüz sezon tamamlanmadı.
+                </div>
+            </div>
+
+            <h4 style="color:var(--accent); margin-top:20px;">📜 Sezon Sonu Ödülleri & Tarihçe</h4>
+            <div id="season-end-results-box" style="background:#0f172a; padding:10px; border-radius:8px; border:1px solid #334155; margin-bottom:10px; font-size:12px;">Sezon henüz tamamlanmadı.</div>
+
+            <h4 style="color:var(--accent); margin-top:20px;">📜 Ballon d'Or Geçmiş Kazananları</h4>
+            <div id="ballondor-history-list"><p style="font-size:11px; color:#94a3b8;">Henüz tamamlanmış sezon yok.</p></div>
+        </div>
+
+        <!-- TAB 7: DJAVA ŞAMPİYONLAR ŞAMPİYONU TURNUVASI -->
+        <div id="tab-champions" class="section-box">
+            <h3 style="color:#38bdf8;">👑 Djava Şampiyonlar Şampiyonu Turnuvası</h3>
+            <p style="font-size:11px; color:#94a3b8;">21 ligin tüm şampiyonları sezon sonunda İsviçre modeli 4 maçlık lig aşaması oynar. İlk 4 takım Yarı Final ve Finalde mücadele eder! Hər sezon əvvəli keçmiş turniri də görə bilərsiniz.</p>
+            
+            <div id="champions-status-box" style="background:#1e293b; padding:12px; border-radius:8px; border:1px solid #334155; margin-bottom:12px;">
+                <b>Turnuva Durumu:</b> <span id="champions-status-txt" style="color:var(--accent);">Sezon sonu bekleniyor...</span>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:15px;">
+                <div>
+                    <h4 style="color:var(--accent);">📊 Şampiyonlar Ligi Tablosu (21 Kulüp)</h4>
+                    <table>
+                        <thead><tr><th>Sıra</th><th>Kulüp</th><th>Oyn</th><th>Puan</th><th>AV</th></tr></thead>
+                        <tbody id="champions-table-tbody"></tbody>
+                    </table>
+                </div>
+                <div>
+                    <h4 style="color:#38bdf8;">🏆 Önceki Şampiyonlar & Final Maçları</h4>
+                    <div id="champions-history-box" style="font-size:11px; color:#94a3b8; background:#1e293b; padding:10px; border-radius:6px; border:1px solid #334155;">Geçmiş kayıt bulunmamaktadır.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 8: DÜNYA GEÇMİŞİ -->
+        <div id="tab-history" class="section-box">
+            <h3>📜 Dünya Geçmişi & Tüm Ligler (Sezon Sonu Görünümü)</h3>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+                <div class="form-group" style="flex:1; min-width:150px; margin-bottom:0;">
+                    <label>Sezon Seç:</label>
+                    <select id="history-season-select" onchange="renderHistoryData()"></select>
+                </div>
+                <div class="form-group" style="flex:1; min-width:180px; margin-bottom:0;">
+                    <label>Lig Seç (Geçmiş):</label>
+                    <select id="history-league-select" onchange="renderHistoryData()"></select>
+                </div>
+            </div>
+            <div id="history-best-game-box" style="background:#1e293b; padding:10px; border-radius:6px; margin-bottom:10px; font-size:12px; border-left:4px solid var(--warning); border:1px solid #334155;">
+                <b>🏆 Sezonun Ödülleri & Şampiyonları:</b> <span id="history-best-game-txt" style="color:var(--accent);">Bilgi yok</span>
+            </div>
+            <table>
+                <thead><tr><th>Sıra</th><th>Kulüp</th><th>Oyn</th><th>Gal</th><th>Ber</th><th>Mağ</th><th>AV</th><th>Puan</th></tr></thead>
+                <tbody id="history-league-tbody"></tbody>
+            </table>
+        </div>
+
+        <!-- TAB 9: TRANSFERLER -->
+        <div id="tab-transfers" class="section-box">
+            <h3>🔁 Transfer Teklifleri & Top Oyuncu Transferleri</h3>
+            <p style="font-size:11px; color:#94a3b8;">Sezon sonunda OVR reytinginize uygun kulüplerden transfer teklifleri alırsınız. Kabul ederseniz o kulübün ligine geçersiniz! Top oyuncular da gerçekçi olarak büyük kulüpler arası transfer yaparlar.</p>
+            <div id="transfer-offers-container"><p style="color:#94a3b8;">Size gelen teklif yok. Sezon sonunu bekleyin.</p></div>
+            
+            <h4 style="margin-top:20px; color:var(--accent);">🌍 Son Top Oyuncu Transferleri</h4>
+            <div id="top-player-transfers-container" style="background:#1e293b; padding:10px; border-radius:6px; border:1px solid #334155; font-size:12px; color:#cbd5e1;">
+                Henüz transfer sezonu açılmadı.
+            </div>
+        </div>
+
+        <!-- TAB 10: ANTRENMAN -->
+        <div id="tab-training" class="section-box">
+            <h3>🏋️ Antrenman Merkezi (OVR Yükselt)</h3>
+            <p style="font-size:11px; color:#94a3b8;">Maksimum 99 OVR seviyesine ulaşmak için antrenman yapın! Antrenman fiyatları güncellenmiştir (En az 400 XP). Vuruş, Pas ve Kafa antrenmanları kaliteyi artırır.</p>
+            
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin-top:10px;">
+                <div style="background:#1e293b; padding:10px; border-radius:6px; text-align:center; border:1px solid #334155;">
+                    <h4>🎯 Teknik Antrenmanı</h4>
+                    <p style="font-size:11px;">400 XP ➔ +0.15 OVR</p>
+                    <button class="btn-action" onclick="trainSkill('tech')">Antrenman Yap</button>
+                </div>
+                <div style="background:#1e293b; padding:10px; border-radius:6px; text-align:center; border:1px solid #334155;">
+                    <h4>⚡ Fizik Antrenmanı</h4>
+                    <p style="font-size:11px;">500 XP ➔ +0.25 OVR</p>
+                    <button class="btn-action" onclick="trainSkill('phys')" style="background:#3b82f6; color:#fff;">Antrenman Yap</button>
+                </div>
+                <div style="background:#1e293b; padding:10px; border-radius:6px; text-align:center; border:1px solid #334155;">
+                    <h4>⚽ Vuruş Antrenmanı</h4>
+                    <p style="font-size:11px;">450 XP ➔ Şut Kalitesi + OVR</p>
+                    <button class="btn-action" onclick="trainSkill('shoot')" style="background:#f43f5e; color:#fff;">Vuruş Geliştir</button>
+                </div>
+                <div style="background:#1e293b; padding:10px; border-radius:6px; text-align:center; border:1px solid #334155;">
+                    <h4>🧠 Pas Antrenmanı</h4>
+                    <p style="font-size:11px;">450 XP ➔ Pas Kalitesi + OVR</p>
+                    <button class="btn-action" onclick="trainSkill('pass')" style="background:#10b981; color:#fff;">Pas Geliştir</button>
+                </div>
+                <div style="background:#1e293b; padding:10px; border-radius:6px; text-align:center; border:1px solid #334155;">
+                    <h4>✈️ Kafa Vuruşu Antrenmanı</h4>
+                    <p style="font-size:11px;">450 XP ➔ Kafa Kalitesi + OVR</p>
+                    <button class="btn-action" onclick="trainSkill('header')" style="background:#f59e0b; color:#fff;">Kafa Geliştir</button>
+                </div>
+                <div style="background:#1e293b; padding:10px; border-radius:6px; text-align:center; border:2px solid var(--warning);">
+                    <h4 style="color:var(--warning);">🔥 Ağır Üstünlük Antrenmanı</h4>
+                    <p style="font-size:11px;">1000 XP ➔ +0.80 OVR</p>
+                    <button class="btn-action" onclick="trainAdvancedSkill('heavy')" style="background:var(--warning); color:#000;">Animasyonlu Antrenman</button>
+                </div>
+                <div style="background:#1e293b; padding:10px; border-radius:6px; text-align:center; border:2px solid var(--casino-purple);">
+                    <h4 style="color:var(--casino-purple);">🌟 Efsanevi Yıldız Antrenmanı</h4>
+                    <p style="font-size:11px;">2000 XP ➔ +1.80 OVR</p>
+                    <button class="btn-action" onclick="trainAdvancedSkill('legendary')" style="background:var(--casino-purple); color:#fff;">Efsanevi Antrenman</button>
+                </div>
+            </div>
+
+            <div id="training-anim-container" style="display:none; margin-top:15px; text-align:center; background:#0f172a; padding:15px; border-radius:8px; border:1px dashed var(--accent);">
+                <h4 id="training-anim-title" style="color:var(--accent); margin:0 0 5px 0;">🏋️ Antrenman Sürüyor...</h4>
+                <div style="font-size: 28px; margin: 10px 0;" id="training-anim-icon">⚽ 🏃‍♂️ 💨</div>
+                <p id="training-anim-desc" style="font-size: 11px; color:#94a3b8;">Oyuncunuz performansını zirveye taşıyor...</p>
+            </div>
+        </div>
+
+        <!-- TAB 11: MAĞAZA -->
+        <div id="tab-shop" class="section-box">
+            <h3>🏬 Mağaza & Kristal Pazarı</h3>
+            
+            <h4 style="color:var(--crystal-blue); margin: 10px 0 5px 0;">💎 Kristal Top Özel Mağazası</h4>
+            <div class="shop-grid" style="margin-bottom: 15px;">
+                <div class="shop-item" style="border: 2px solid var(--crystal-blue);">
+                    <h4 style="color:var(--crystal-blue);">🏆 Altın Krampon</h4>
+                    <p style="font-size:11px;">Efsanevi Altın Krampon (+20% Refah)</p>
+                    <button class="btn-action" onclick="buyCrystalItem('gold_boots', 10)" style="background:var(--crystal-blue); color:#000;">Al (10 💎)</button>
+                </div>
+                <div class="shop-item" style="border: 2px solid var(--crystal-blue);">
+                    <h4 style="color:var(--crystal-blue);">📈 +3 OVR Takviyesi</h4>
+                    <p style="font-size:11px;">Anında oyuncu reytingini +3 OVR artırır!</p>
+                    <button class="btn-action" onclick="buyCrystalItem('ovr_boost', 15)" style="background:var(--crystal-blue); color:#000;">Al (15 💎)</button>
+                </div>
+                <div class="shop-item" style="border: 2px solid var(--crystal-blue);">
+                    <h4 style="color:var(--crystal-blue);">⚡ Sonsuz Enerji (Kristal)</h4>
+                    <p style="font-size:11px;">Enerjiyi anında %100 yapar</p>
+                    <button class="btn-action" onclick="buyCrystalItem('max_energy', 5)" style="background:var(--crystal-blue); color:#000;">Al (5 💎)</button>
+                </div>
+            </div>
+
+            <h4 style="color:var(--accent); margin: 10px 0 5px 0;">💶 Standart Mağaza</h4>
+            <div class="shop-grid">
+                <div class="shop-item">
+                    <h4>⚡ Enerji İçeceği (30%)</h4>
+                    <p style="font-size:11px;">Sadece +30 Enerji</p>
+                    <button class="btn-action" onclick="buyItem('energy30', 150)">Al (€150)</button>
+                </div>
+                <div class="shop-item" style="border:1px solid #10b981;">
+                    <h4 style="color:#10b981;">🔋 Full Enerji</h4>
+                    <p style="font-size:11px;">Enerjiyi %100 Yapar</p>
+                    <button class="btn-action" onclick="buyItem('energy100', 500)" style="background:#10b981;">Al (€500)</button>
+                </div>
+                <div class="shop-item">
+                    <h4>👟 Profesyonel Krampon</h4>
+                    <p style="font-size:11px;">+10% Refah</p>
+                    <button class="btn-action" onclick="buyItem('boots', 1500)" style="background:#22c55e; color:#000;">Al (€1,500)</button>
+                </div>
+                <div class="shop-item">
+                    <h4>🏎️ Spor Araba</h4>
+                    <p style="font-size:11px;">+25% Refah</p>
+                    <button class="btn-action" onclick="buyItem('car', 45000)" style="background:var(--warning); color:#000;">Al (€45,000)</button>
+                </div>
+                <div class="shop-item">
+                    <h4>🏠 Özel Villa</h4>
+                    <p style="font-size:11px;">+40% Refah</p>
+                    <button class="btn-action" onclick="buyItem('villa', 150000)" style="background:var(--warning); color:#000;">Al (€150,000)</button>
+                </div>
+                <div class="shop-item">
+                    <h4>⌚ Lüks Kol Saati</h4>
+                    <p style="font-size:11px;">+15% Refah</p>
+                    <button class="btn-action" onclick="buyItem('watch', 12000)" style="background:var(--warning); color:#000;">Al (€12,000)</button>
+                </div>
+                <div class="shop-item">
+                    <h4>✈️ Özel Jet</h4>
+                    <p style="font-size:11px;">+70% Refah</p>
+                    <button class="btn-action" onclick="buyItem('jet', 850000)" style="background:var(--warning); color:#000;">Al (€850,000)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 12: İDDAA VE ŞANS ÇARKI -->
+        <div id="tab-casino" class="section-box">
+            <h3 style="color:var(--casino-purple);">🎰 Gerçek İddaa Merkezi & Şans Çarkı</h3>
+            <p style="font-size:11px; color:#94a3b8;">Bütün liglerden her maç haftası (her maçtan sonra) yeni 5 maç gelir. İddaa oynadıktan sonra değiştirilemez, sonuçlar Posta'ya gelir.</p>
+            
+            <div style="background:#0f172a; padding:12px; border-radius:8px; border:1px solid #334155; margin-bottom:15px; text-align:center;">
+                <h4 style="margin:0 0 5px 0; color:var(--casino-purple);">🎡 Şans Çarkı (Kalan Hak: <span id="wheel-limit-txt">5</span>)</h4>
+                <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">Her çevirme €500 tutarındadır.</p>
+                <div id="wheel-animation-box" style="width: 70px; height: 70px; margin: 0 auto 10px auto; border: 4px dashed var(--casino-purple); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;">🎡</div>
+                <button class="btn-action" onclick="spinWheel()" style="background:var(--casino-purple); color:#fff; max-width:220px; margin:0 auto;">🎡 Çarkı Çevir (€500)</button>
+                <div id="wheel-result-msg" style="font-size:12px; margin-top:8px; font-weight:bold; min-height:18px;"></div>
+            </div>
+
+            <h4 style="font-size:12px; color:var(--accent); margin-bottom:8px;">🌍 Haftalık İddaa Bülteni (Her Maç Değişir):</h4>
+            <div id="betting-matches-list"></div>
+        </div>
+
+        <!-- TAB 13: DJAVA BANK -->
+        <div id="tab-bank" class="section-box">
+            <h3 style="color:#10b981;">🏦 Djava Bank - Kredi Hizmetleri</h3>
+            <p style="font-size:11px; color:#94a3b8;">Krediyi 2 sezonda bir (örneğin 2026'da çektiyseniz 2028'de) çekebilirsiniz. Borcunuz varken maç gelirlerinizden kesinti yapılır.</p>
+            
+            <div style="background:#0f172a; padding:15px; border-radius:8px; border:1px solid #334155; margin-top:10px;">
+                <p><b>Mevcut Borç:</b> <span id="bank-debt-txt" style="color:var(--danger);">€0</span></p>
+                <p><b>Kredi Durumu:</b> <span id="bank-status-txt" style="color:var(--accent);">Kredi çekilebilir</span></p>
+                
+                <div id="bank-action-container" style="margin-top:15px;">
+                    <button class="btn-action" id="btn-take-loan" onclick="takeDjavaLoan()" style="background:#10b981; color:#000; max-width:250px;">Kredi Çek (€10,000)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 14: POSTA MERKEZİ -->
+        <div id="tab-mail" class="section-box">
+            <h3>📬 Bildirimler & Kulüp Mesajları</h3>
+            <div id="mail-list-container"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // BİRLEŞTİRİLMİŞ OYUNCU VERİTABANI
+    const topPlayersDB = [
+        { id: 1, name: "Ousmane Dembélé", country: "Fransa", club: "Paris Saint-Germain", ovr: 87, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 29, retired: false },
+        { id: 2, name: "Lamine Yamal", country: "İspanya", club: "Barcelona", ovr: 85, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 19, retired: false },
+        { id: 3, name: "Vitinha", country: "Portekiz", club: "Paris Saint-Germain", ovr: 81, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 26, retired: false },
+        { id: 4, name: "Mohamed Salah", country: "Mısır", club: "Liverpool", ovr: 84, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 34, retired: false },
+        { id: 5, name: "Raphinha", country: "Brezilya", club: "Barcelona", ovr: 85, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 29, retired: false },
+        { id: 6, name: "Achraf Hakimi", country: "Fas", club: "Paris Saint-Germain", ovr: 83, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 27, retired: false },
+        { id: 7, name: "Kylian Mbappé", country: "Fransa", club: "Real Madrid", ovr: 91, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 27, retired: false },
+        { id: 8, name: "Cole Palmer", country: "İngiltere", club: "Chelsea", ovr: 88, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 24, retired: false },
+        { id: 9, name: "Nuno Mendes", country: "Portekiz", club: "Paris Saint-Germain", ovr: 84, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 24, retired: false },
+        { id: 10, name: "Pedri", country: "İspanya", club: "Barcelona", ovr: 86, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 23, retired: false },
+        { id: 11, name: "Khvicha Kvaratskhelia", country: "Gürcistan", club: "Napoli", ovr: 87, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 25, retired: false },
+        { id: 12, name: "Harry Kane", country: "İngiltere", club: "Bayern Munich", ovr: 89, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 33, retired: false },
+        { id: 13, name: "Désiré Doué", country: "Fransa", club: "Paris Saint-Germain", ovr: 83, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 21, retired: false },
+        { id: 14, name: "Viktor Gyökeres", country: "İsveç", club: "Sporting CP", ovr: 82, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 28, retired: false },
+        { id: 15, name: "Vinícius Júnior", country: "Brezilya", club: "Real Madrid", ovr: 90, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 26, retired: false },
+        { id: 16, name: "Robert Lewandowski", country: "Polonya", club: "Barcelona", ovr: 83, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 37, retired: false },
+        { id: 17, name: "Scott McTominay", country: "İskoçya", club: "Napoli", ovr: 79, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 29, retired: false },
+        { id: 18, name: "João Neves", country: "Portekiz", club: "Paris Saint-Germain", ovr: 80, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 21, retired: false },
+        { id: 19, name: "Lautaro Martínez", country: "Arjantin", club: "Inter Milan", ovr: 84, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 28, retired: false },
+        { id: 20, name: "Serhou Guirassy", country: "Gine", club: "Borussia Dortmund", ovr: 79, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 30, retired: false },
+        { id: 21, name: "Alexis Mac Allister", country: "Arjantin", club: "Liverpool", ovr: 79, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 27, retired: false },
+        { id: 22, name: "Jude Bellingham", country: "İngiltere", club: "Real Madrid", ovr: 88, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 23, retired: false },
+        { id: 23, name: "Fabián Ruiz", country: "İspanya", club: "Paris Saint-Germain", ovr: 81, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 30, retired: false },
+        { id: 24, name: "Denzel Dumfries", country: "Hollanda", club: "Inter Milan", ovr: 82, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 30, retired: false },
+        { id: 25, name: "Erling Haaland", country: "Norveç", club: "Manchester City", ovr: 91, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 26, retired: false },
+        { id: 26, name: "Declan Rice", country: "İngiltere", club: "Arsenal", ovr: 87, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 27, retired: false },
+        { id: 27, name: "Virgil van Dijk", country: "Hollanda", club: "Liverpool", ovr: 88, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 35, retired: false },
+        { id: 28, name: "Florian Wirtz", country: "Almanya", club: "Bayer Leverkusen", ovr: 86, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 23, retired: false },
+        { id: 29, name: "Michael Olise", country: "Fransa", club: "Bayern Munich", ovr: 89, isGK: false, goals: 0, assists: 0, saves: 0, points: 0, age: 24, retired: false },
+        // Kaleciler
+        { id: 30, name: "Gianluigi Donnarumma", country: "İtalya", club: "Paris Saint-Germain", ovr: 87, isGK: true, goals: 0, assists: 0, saves: 0, points: 0, age: 27, retired: false },
+        { id: 31, name: "Thibaut Courtois", country: "Belçika", club: "Real Madrid", ovr: 88, isGK: true, goals: 0, assists: 0, saves: 0, points: 0, age: 34, retired: false },
+        { id: 32, name: "Alisson Becker", country: "Brezilya", club: "Liverpool", ovr: 89, isGK: true, goals: 0, assists: 0, saves: 0, points: 0, age: 33, retired: false },
+        { id: 33, name: "Altay Bayındır", country: "Türkiye", club: "Celta Vigo", ovr: 77, isGK: true, goals: 0, assists: 0, saves: 0, points: 0, age: 28, retired: false },
+        { id: 34, name: "Diogo Costa", country: "Portekiz", club: "Porto", ovr: 82, isGK: true, goals: 0, assists: 0, saves: 0, points: 0, age: 26, retired: false },
+        { id: 35, name: "Mike Maignan", country: "Fransa", club: "AC Milan", ovr: 87, isGK: true, goals: 0, assists: 0, saves: 0, points: 0, age: 31, retired: false },
+        { id: 36, name: "Emiliano Martínez", country: "Arjantin", club: "Aston Villa", ovr: 89, isGK: true, goals: 0, assists: 0, saves: 0, points: 0, age: 33, retired: false },
+        { id: 37, name: "David Raya", country: "İspanya", club: "Arsenal", ovr: 89, isGK: true, goals: 0, assists: 0, saves: 0, points: 0, age: 30, retired: false },
+        { id: 38, name: "Gregor Kobel", country: "İsviçre", club: "Borussia Dortmund", ovr: 88, isGK: true, goals: 0, assists: 0, saves: 0, points: 0, age: 28, retired: false },
+        { id: 39, name: "Unai Simón", country: "İspanya", club: "Athletic Bilbao", ovr: 87, isGK: true, goals: 0, assists: 0, saves: 0, points: 0, age: 29, retired: false },
+        { id: 40, name: "Jordan Pickford", country: "İngiltere", club: "Everton", ovr: 84, isGK: true, goals: 0, assists: 0, saves: 0, points: 0, age: 32, retired: false },
+        { id: 41, name: "Marc-André ter Stegen", country: "Almanya", club: "Barcelona", ovr: 81, isGK: true, goals: 0, assists: 0, saves: 0, points: 0, age: 34, retired: false },
+        { id: 42, name: "Giorgi Mamardashvili", country: "Gürcistan", club: "Liverpool", ovr: 80, isGK: true, goals: 0, assists: 0, saves: 0, points: 0, age: 25, retired: false },
+        { id: 43, name: "Bart Verbruggen", country: "Hollanda", club: "Brighton", ovr: 77, isGK: true, goals: 0, assists: 0, saves: 0, points: 0, age: 24, retired: false }
+    ];
+
+    const allLeaguesData = {
+        ESP1: { name: "La Liga", country: "İspanya", tier: 1, locked: true, teams: ["Athletic Bilbao", "Atlético Madrid", "Barcelona", "Celta Vigo", "Alavés", "Espanyol", "Getafe", "Girona", "Las Palmas", "Leganés", "Mallorca", "Osasuna", "Rayo Vallecano", "Real Betis", "Real Madrid", "Real Sociedad", "Sevilla", "Valencia", "Valladolid", "Villarreal"] },
+        ESP2: { name: "Segunda División", country: "İspanya", tier: 2, locked: false, teams: ["Albacete", "Almería", "Burgos", "Cádiz", "Cartagena", "Castellón", "Córdoba", "Deportivo La Coruña", "Eibar", "Elche", "Eldense", "Granada", "Huesca", "Levante", "Málaga", "Mirandés", "Racing Ferrol", "Racing Santander", "Real Oviedo", "Real Sporting", "Tenerife", "Zaragoza"] },
+        ENG1: { name: "Premier League", country: "İngiltere", tier: 1, locked: true, teams: ["Arsenal", "Aston Villa", "Bournemouth", "Brentford", "Brighton", "Chelsea", "Crystal Palace", "Everton", "Fulham", "Ipswich Town", "Leicester City", "Liverpool", "Manchester City", "Manchester United", "Newcastle United", "Nottingham Forest", "Southampton", "Tottenham Hotspur", "West Ham United", "Wolverhampton Wanderers"] },
+        ENG2: { name: "EFL Championship", country: "İngiltere", tier: 2, locked: false, teams: ["Birmingham City", "Blackburn Rovers", "Bristol City", "Charlton Athletic", "Coventry City", "Derby County", "Hull City", "Middlesbrough", "Millwall", "Norwich City", "Oxford United", "Portsmouth", "Preston North End", "Queens Park Rangers", "Sheffield United", "Sheffield Wednesday", "Stoke City", "Sunderland", "Swansea City", "Watford", "West Bromwich Albion"] },
+        ITA1: { name: "Serie A", country: "İtalya", tier: 1, locked: true, teams: ["Atalanta", "Bologna", "Cagliari", "Como", "Empoli", "Fiorentina", "Genoa", "Hellas Verona", "Inter Milan", "Juventus", "Lazio", "Lecce", "AC Milan", "Monza", "Napoli", "Parma", "Roma", "Torino", "Udinese", "Venezia"] },
+        ITA2: { name: "Serie B", country: "İtalya", tier: 2, locked: false, teams: ["AC Monza", "Bari FK", "Cesena FC", "Delfino Pescara", "Empoli FK", "FC Südtirol", "Frosinone Calcio", "Carrarese", "Mantova 1911", "Padova", "Palermo FK", "Reggiana", "Sampdoria", "Spezia", "Juve Stabia", "Avellino", "Catanzaro", "Venezia FC", "Virtus Entella"] },
+        GER1: { name: "Bundesliga", country: "Almanya", tier: 1, locked: true, teams: ["Augsburg", "Bayer Leverkusen", "Bayern Munich", "Bochum", "Borussia Dortmund", "Borussia Mönchengladbach", "Eintracht Frankfurt", "Freiburg", "Heidenheim", "Hoffenheim", "Holstein Kiel", "Mainz", "RB Leipzig", "St. Pauli", "Stuttgart", "Union Berlin", "Werder Bremen", "Wolfsburg"] },
+        GER2: { name: "2. Bundesliga", country: "Almanya", tier: 2, locked: false, teams: ["Hertha Berlin", "Schalke 04", "Hamburg", "Köln", "Kaiserslautern", "Hannover 96", "Fortuna Düsseldorf", "Nuremberg", "Karlsruher", "Paderborn", "Magdeburg", "Greuther Fürth", "Elversberg", "Braunschweig", "Münster", "Ulm", "Regensburg", "Darmstadt"] },
+        FRA1: { name: "Ligue 1", country: "Fransa", tier: 1, locked: true, teams: ["Angers", "Auxerre", "Brest", "Le Havre", "Lens", "Lille", "Lyon", "Marseille", "Monaco", "Montpellier", "Nantes", "Nice", "Paris Saint-Germain", "Reims", "Rennes", "Saint-Étienne", "Strasbourg", "Toulouse"] },
+        FRA2: { name: "Ligue 2", country: "Fransa", tier: 2, locked: false, teams: ["Ajaccio", "Amiens", "Annecy", "Bastia", "Boulogne", "Caen", "Clermont", "Dunkerque", "Grenoble", "Guingamp", "Laval", "Lorient", "Martigues", "Metz", "Paris FC", "Pau", "Rodez", "Troyes"] },
+        MAR1: { name: "Botola Pro", country: "Fas", tier: 1, locked: false, teams: ["AS FAR", "FUS Rabat", "Ittihad Tanger", "JS Soualem", "Moghreb Tétouan", "Mouloudia Oujda", "Olympic Safi", "Raja Casablanca", "RS Berkane", "SCC Mohammédia", "Union de Touarga", "Wydad AC", "Maghreb de Fès", "Renaissance Zemamra", "COD Meknès"] },
+        POR1: { name: "Primeira Liga", country: "Portekiz", tier: 1, locked: false, teams: ["AVS", "Boavista", "Casa Pia", "Estoril", "Estrela da Amadora", "Famalicão", "Farense", "Gil Vicente", "Moreirense", "Nacional", "Porto", "Rio Ave", "Santa Clara", "Braga", "Benfica", "Sporting CP", "Vitória de Guimarães", "Arouca"] },
+        BEL1: { name: "Pro League", country: "Belçika", tier: 1, locked: false, teams: ["Anderlecht", "Antwerp", "Cercle Brugge", "Charleroi", "Club Brugge", "Genk", "Gent", "Kortrijk", "Mechelen", "Dender", "St. Truiden", "Standard Liège", "Union Saint-Gilloise", "Westerlo", "Beerschot", "OH Leuven"] },
+        NED1: { name: "Eredivisie", country: "Hollanda", tier: 1, locked: false, teams: ["Ajax", "Almere City", "AZ Alkmaar", "Feyenoord", "Fortuna Sittard", "Go Ahead Eagles", "Groningen", "Heerenveen", "Heracles Almelo", "NAC Breda", "NEC Nijmegen", "PEC Zwolle", "PSV Eindhoven", "RKC Waalwijk", "Sparta Rotterdam", "Twente", "Utrecht", "Willem II"] },
+        MEX1: { name: "Liga MX", country: "Meksika", tier: 1, locked: false, teams: ["América", "Atlas", "Atlético San Luis", "Cruz Azul", "Guadalajara", "Juárez", "León", "Mazatlán", "Monterrey", "Necaxa", "Pachuca", "Puebla", "Querétaro", "Santos Laguna", "Tigres UANL", "Tijuana", "Toluca", "Pumas UNAM"] },
+        COL1: { name: "Categoría Primera A", country: "Kolombiya", tier: 1, locked: false, teams: ["Águilas Doradas", "Alianza", "América de Cali", "Atlético Bucaramanga", "Atlético Nacional", "Boyacá Chicó", "Deportes Tolima", "Deportivo Cali", "Deportivo Pasto", "Envigado", "Fortaleza", "Independiente Medellín", "Junior", "La Equidad", "Millonarios", "Once Caldas", "Patriotas", "Santa Fe", "Pereira", "Jaguares"] },
+        CRO1: { name: "HNL", country: "Hırvatistan", tier: 1, locked: false, teams: ["Dinamo Zagreb", "Gorica", "Hajduk Split", "Istra 1961", "Lokomotiva", "Osijek", "Rijeka", "Slaven Belupo", "Varaždin", "Šibenik"] },
+        SUI1: { name: "Super League", country: "İsviçre", tier: 1, locked: false, teams: ["Basel", "Grasshoppers", "Lausanne-Sport", "Lugano", "Luzern", "Servette", "St. Gallen", "Young Boys", "Zürich", "Winterthur", "Yverdon-Sport", "Sion"] },
+        USA1: { name: "MLS", country: "ABD", tier: 1, locked: false, teams: ["Atlanta United", "Austin FC", "Charlotte FC", "Chicago Fire", "FC Cincinnati", "Colorado Rapids", "Columbus Crew", "D.C. United", "FC Dallas", "Houston Dynamo", "Sporting Kansas City", "LA Galaxy", "LAFC", "Inter Miami", "Minnesota United", "CF Montréal", "Nashville SC", "New England Revolution", "New York City FC", "New York Red Bulls", "Orlando City", "Philadelphia Union", "Portland Timbers", "Real Salt Lake", "San Jose Earthquakes", "Seattle Sounders", "St. Louis City", "Toronto FC", "Vancouver Whitecaps"] },
+        JPN1: { name: "J1 League", country: "Japonya", tier: 1, locked: false, teams: ["Albirex Niigata", "Avispa Fukuoka", "Cerezo Osaka", "Consadole Sapporo", "FC Tokyo", "Gamba Osaka", "Jubilo Iwata", "Kashima Antlers", "Kashiwa Reysol", "Kawasaki Frontale", "Machida Zelvia", "Nagoya Grampus", "Sagan Tosu", "Sanfrecce Hiroshima", "Shonan Bellmare", "Tokyo Verdy", "Urawa Red Diamonds", "Vissel Kobe", "Yokohama F. Marinos", "Kyoto Sanga"] },
+        AZE1: { name: "Misli Premyer Liqası", country: "Azerbaycan", tier: 1, locked: false, teams: ["Araz-Naxçıvan", "Kəpəz", "Neftçi", "Qarabağ", "Sabah", "Səbail", "Sumqayıt", "Şamaxı", "Turan Tovuz", "Zirə"] },
+        TUR1: { name: "Trendyol Süper Lig", country: "Türkiye", tier: 1, locked: false, teams: ["Alanyaspor", "Amed Sportif Faaliyetler", "Beşiktaş", "Çorum FK", "Erzurumspor FK", "Eyüpspor", "Fenerbahçe", "Galatasaray", "Gaziantep FK", "Gençlerbirliği", "Göztepe", "Kasımpaşa", "Kocaelispor", "Konyaspor", "RAMS Başakşehir", "Rizespor", "Samsunspor", "Trabzonspor"] }
+    };
+
+    const giantClubs = [
+        "Real Madrid", "Barcelona", "Manchester City", "Arsenal", "Liverpool", 
+        "Inter Milan", "Juventus", "Bayern Munich", "Borussia Dortmund", "Paris Saint-Germain",
+        "Galatasaray", "Fenerbahçe", "Beşiktaş", "Qarabağ", "Porto", "Benfica", "Sporting CP", "Ajax", "PSV Eindhoven"
+    ];
+
+    let gameState = {
+        name: "Ali Mammedov", age: 18, position: "ST", nation: "🇦🇿 Azerbaycan",
+        hairStyle: "short", skinColor: "#f59e0b",
+        leagueCode: "ESP2", club: "", squadRole: "Rotasyon",
+        ovr: 52.0, xp: 0, energy: 100, welfare: 70, marketVal: 200000, money: 100, crystals: 0,
+        goals: 0, assists: 0, season: 2026, matchWeek: 1, isSeasonStarted: false,
+        careerGoals: 0, careerAssists: 0, perfHistory: [],
+        trophies: [],
+        leagueTable: [], fixture: [], globalTables: {}, matchSpeed: 1000,
+        weeklyBets: [], activeBets: [], transferOffers: [], nationalTeamStatus: "Davet bekliyor",
+        wheelSpinsLeft: 5, mailList: [], historicalTables: {},
+        ballonDorHistory: [], championsHistory: [],
+        bankDebt: 0, lastLoanSeason: 0, consecutiveSimCount: 0, lastSimTimestamp: 0,
+        djavaTheBest: null, championsTournament: null,
+        seasonEndSummary: null,
+        passQuality: 1.0, shootQuality: 1.0, headerQuality: 1.0, topPlayerTransfers: []
+    };
+
+    let currentMatch = { home: "", away: "", homeScore: 0, awayScore: 0, minute: 0, isHome: true };
+    let isMatchActive = false;
+    let audioCtx = null;
+    let isMusicPlaying = false;
+    let musicInterval = null;
+
+    // WEB AUDIO API
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+    function playWhistleSound() { try { initAudio(); const osc=audioCtx.createOscillator(); const gain=audioCtx.createGain(); osc.type='sine'; osc.frequency.setValueAtTime(2500,audioCtx.currentTime); osc.frequency.setValueAtTime(2850,audioCtx.currentTime+0.15); gain.gain.setValueAtTime(0.15,audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.4); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime+0.4); } catch(e){} }
+    function playGoalSound() { try { initAudio(); const osc=audioCtx.createOscillator(); const gain=audioCtx.createGain(); osc.type='triangle'; osc.frequency.setValueAtTime(523.25,audioCtx.currentTime); osc.frequency.setValueAtTime(659.25,audioCtx.currentTime+0.1); osc.frequency.setValueAtTime(783.99,audioCtx.currentTime+0.2); osc.frequency.setValueAtTime(1046.50,audioCtx.currentTime+0.3); gain.gain.setValueAtTime(0.25,audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.6); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime+0.6); } catch(e){} }
+    function playOpportunitySound() { try { initAudio(); const osc=audioCtx.createOscillator(); const gain=audioCtx.createGain(); osc.type='sawtooth'; osc.frequency.setValueAtTime(440,audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(880,audioCtx.currentTime+0.2); gain.gain.setValueAtTime(0.15,audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.25); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime+0.25); } catch(e){} }
+
+    function toggleBGM() {
+        if (!isMusicPlaying) {
+            initAudio();
+            isMusicPlaying = true;
+            document.getElementById('btn-music').innerText = "🎵 Müzik: Açık";
+            document.getElementById('btn-music').style.background = "#22c55e";
+            document.getElementById('btn-music').style.color = "#000";
+            let chords = [[261.63, 329.63, 392.00], [220.00, 261.63, 329.63], [349.23, 440.00, 523.25], [392.00, 493.88, 587.33]];
+            let idx = 0;
+            musicInterval = setInterval(() => {
+                if(!audioCtx) return;
+                let c = chords[idx];
+                c.forEach((f, i) => {
+                    let osc = audioCtx.createOscillator(); let g = audioCtx.createGain();
+                    osc.type = i===0 ? 'triangle' : 'sine'; osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+                    g.gain.setValueAtTime(0.02, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.2);
+                    osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 1.2);
+                });
+                idx = (idx + 1) % chords.length;
+            }, 1400);
+        } else {
+            if(musicInterval) clearInterval(musicInterval);
+            isMusicPlaying = false;
+            document.getElementById('btn-music').innerText = "🎵 Müzik: Kapalı";
+            document.getElementById('btn-music').style.background = "#8b5cf6";
+            document.getElementById('btn-music').style.color = "#fff";
+        }
+    }
+
+    function showInGameAlert(text, isError = false) {
+        let box = document.getElementById('in-game-alert-box');
+        document.getElementById('in-game-alert-text').innerText = text;
+        document.getElementById('in-game-alert-btns').innerHTML = `<button class="btn-action" onclick="closeInGameAlert()" style="max-width: 100px; padding: 5px 10px; font-size: 11px; margin: 0 auto;">Tamam</button>`;
+        if(isError) box.classList.add('error'); else box.classList.remove('error');
+        box.style.display = 'block';
+    }
+    function closeInGameAlert() { document.getElementById('in-game-alert-box').style.display = 'none'; }
+    
+    function showConfirmation(text, onConfirm) {
+        let box = document.getElementById('in-game-alert-box');
+        document.getElementById('in-game-alert-text').innerText = text;
+        document.getElementById('in-game-alert-btns').innerHTML = `
+            <div style="display:flex; justify-content:center; gap:10px;">
+                <button class="btn-action" id="modal-yes-btn" style="max-width:80px; padding:5px 10px; font-size:11px;">Evet</button>
+                <button class="btn-action" onclick="closeInGameAlert()" style="max-width:80px; padding:5px 10px; font-size:11px; background:var(--danger); color:#fff;">Hayır</button>
+            </div>`;
+        box.classList.remove('error'); box.style.display = 'block';
+        document.getElementById('modal-yes-btn').onclick = () => { closeInGameAlert(); onConfirm(); };
+    }
+
+    function goToMenu() { document.getElementById('splash-screen').style.display = 'none'; document.getElementById('menu-screen').style.display = 'block'; }
+    function previewFace() { drawFaceToCanvas('menuFaceCanvas', document.getElementById('start-hair-style').value, document.getElementById('start-skin').value); }
+    function drawFaceToCanvas(canvasId, style, skin) {
+        let canvas = document.getElementById(canvasId); if(!canvas) return;
+        let ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2 + 4, 22, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#000"; ctx.fillRect(canvas.width/2 - 9, canvas.height/2 - 2, 4, 4); ctx.fillRect(canvas.width/2 + 5, canvas.height/2 - 2, 4, 4);
+        ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2 + 10, 6, 0, Math.PI); ctx.stroke();
+        ctx.fillStyle = "#1e1b4b";
+        if(style === 'short') { ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2 - 2, 22, Math.PI, Math.PI*2); ctx.fill(); } 
+        else if(style === 'long') { ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2 - 2, 23, Math.PI, Math.PI*2); ctx.fill(); ctx.fillRect(canvas.width/2 + 12, canvas.height/2, 8, 18); } 
+        else if(style === 'curly') { ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2 - 4, 25, 0, Math.PI*2); ctx.fill(); }
+    }
+
+    window.onload = function() { previewFace(); renderLeagueSelectOptions(); }
+    function renderLeagueSelectOptions() {
+        let sel = document.getElementById('global-league-select'); let histSel = document.getElementById('history-league-select');
+        sel.innerHTML = ""; histSel.innerHTML = "";
+        for(let code in allLeaguesData) {
+            let opt = document.createElement('option'); opt.value = code; opt.innerText = `${allLeaguesData[code].name} (${allLeaguesData[code].country})`;
+            sel.appendChild(opt); histSel.appendChild(opt.cloneNode(true));
+        }
+    }
+
+    function initNewCareer() {
+        gameState = {
+            name: document.getElementById('start-name').value || "Ali Mammedov", age: parseInt(document.getElementById('start-age').value),
+            position: document.getElementById('start-position').value, nation: document.getElementById('start-nation').value,
+            hairStyle: document.getElementById('start-hair-style').value, skinColor: document.getElementById('start-skin').value,
+            leagueCode: document.getElementById('start-league').value, club: "", squadRole: "Rotasyon",
+            ovr: 52.0, xp: 0, energy: 100, welfare: 70, marketVal: 200000, money: 100, crystals: 0,
+            goals: 0, assists: 0, season: 2026, matchWeek: 1, isSeasonStarted: false, careerGoals: 0, careerAssists: 0, perfHistory: [],
+            trophies: [], leagueTable: [], fixture: [], globalTables: {}, matchSpeed: 1000,
+            weeklyBets: [], activeBets: [], transferOffers: [], nationalTeamStatus: "Davet bekliyor",
+            wheelSpinsLeft: 5, mailList: [], historicalTables: {}, ballonDorHistory: [], championsHistory: [],
+            bankDebt: 0, lastLoanSeason: 0, consecutiveSimCount: 0, lastSimTimestamp: 0, djavaTheBest: null, championsTournament: null, seasonEndSummary: null,
+            passQuality: 1.0, shootQuality: 1.0, headerQuality: 1.0, topPlayerTransfers: []
+        };
+        let teams = allLeaguesData[gameState.leagueCode].teams;
+        gameState.club = teams[Math.floor(Math.random() * teams.length)];
+        initLeaguesAndFixtures(); resetTopPlayersSeasonStats(); generateWeeklyBets();
+        addMail("Djava Games", "Kariyerine Hoş Geldin!", `Merhaba ${gameState.name}! Djava Games ailesine hoş geldin. ${gameState.club} kulübünde harika başarılara imza at!`);
+        document.getElementById('menu-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
+        updateUI(); drawLivePitch();
+    }
+
+    function resetTopPlayersSeasonStats() { topPlayersDB.forEach(p => { p.goals = 0; p.assists = 0; p.saves = 0; p.points = 0; }); }
+
+    function initLeaguesAndFixtures() {
+        gameState.globalTables = {};
+        for(let code in allLeaguesData) {
+            gameState.globalTables[code] = allLeaguesData[code].teams.map(t => ({ name: t, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, pts: 0 }));
+            generateBalancedFixtureForLeague(code);
+        }
+        gameState.leagueTable = gameState.globalTables[gameState.leagueCode];
+    }
+
+    function generateBalancedFixtureForLeague(code) {
+        let teams = [...allLeaguesData[code].teams];
+        if (teams.length % 2 !== 0) teams.push("BAY");
+        let n = teams.length; let rounds = [];
+        for (let r = 0; r < n - 1; r++) {
+            let roundMatches = [];
+            for (let i = 0; i < n / 2; i++) {
+                let t1 = teams[i], t2 = teams[n - 1 - i];
+                if (t1 !== "BAY" && t2 !== "BAY") roundMatches.push(r % 2 === 0 ? {home: t1, away: t2} : {home: t2, away: t1});
+            }
+            rounds.push(roundMatches);
+            teams.splice(1, 0, teams.pop());
+        }
+        let fullRounds = rounds.concat(rounds.map(round => round.map(m => ({ home: m.away, away: m.home }))));
+        if (allLeaguesData[code].teams.length < 16) {
+            fullRounds = fullRounds.concat(rounds.map(round => round.map(m => ({ home: m.home, away: m.away }))))
+                                   .concat(rounds.map(round => round.map(m => ({ home: m.away, away: m.home }))));
+        }
+        allLeaguesData[code].generatedFixtures = fullRounds;
+        if (code === gameState.leagueCode) {
+            gameState.fixture = fullRounds.map((round, idx) => {
+                let userMatch = round.find(m => m.home === gameState.club || m.away === gameState.club);
+                if (userMatch) return { week: idx + 1, opponent: userMatch.home === gameState.club ? userMatch.away : userMatch.home, isHome: userMatch.home === gameState.club, played: false, result: "-" };
+                return null;
+            }).filter(Boolean);
+        }
+    }
+
+    function updateUI() {
+        document.getElementById('hdr-player-name').innerText = `${gameState.name} (${gameState.position})`;
+        document.getElementById('hdr-club-info').innerText = `Kulüp: ${gameState.club} | Durum: ${gameState.squadRole}`;
+        document.getElementById('stat-ovr').innerText = gameState.ovr.toFixed(1);
+        document.getElementById('stat-age-season').innerText = `${gameState.age} Yaş (${gameState.season})`;
+        document.getElementById('stat-xp').innerText = `${gameState.xp} XP`;
+        document.getElementById('stat-energy').innerText = `${gameState.energy}%`;
+        document.getElementById('energy-bar').style.width = `${gameState.energy}%`;
+        document.getElementById('stat-welfare').innerText = `${gameState.welfare}%`;
+        document.getElementById('welfare-bar').style.width = `${gameState.welfare}%`;
+        document.getElementById('stat-market-val').innerText = "€" + (gameState.marketVal/1000).toFixed(0) + "K";
+        document.getElementById('stat-money').innerText = "€" + gameState.money.toLocaleString();
+        document.getElementById('stat-crystals').innerText = `💎 ${gameState.crystals || 0}`;
+        document.getElementById('stat-squad-role').innerText = gameState.squadRole;
+        document.getElementById('prof-pos').innerText = gameState.position;
+        document.getElementById('prof-nation').innerText = gameState.nation;
+        document.getElementById('prof-club').innerText = gameState.club;
+        document.getElementById('prof-role').innerText = gameState.squadRole;
+        document.getElementById('prof-goals').innerText = `${gameState.goals} Gol`;
+        document.getElementById('prof-assists').innerText = `${gameState.assists} Asist`;
+        document.getElementById('prof-career-goals').innerText = `${gameState.careerGoals} Gol`;
+        document.getElementById('prof-career-assists').innerText = `${gameState.careerAssists} Asist`;
+        document.getElementById('prof-nt-status').innerText = gameState.nationalTeamStatus;
+        document.getElementById('wheel-limit-txt').innerText = gameState.wheelSpinsLeft;
+        
+        document.getElementById('bank-debt-txt').innerText = "€" + gameState.bankDebt.toLocaleString();
+        let statusTxt = document.getElementById('bank-status-txt'); let takeLoanBtn = document.getElementById('btn-take-loan');
+        if(gameState.bankDebt > 0) { statusTxt.innerText = "Ödenmemiş borç var!"; statusTxt.style.color = "var(--danger)"; takeLoanBtn.disabled = true; }
+        else if(gameState.season - gameState.lastLoanSeason < 2 && gameState.lastLoanSeason !== 0) { statusTxt.innerText = `Sadece 2 sezonda bir çekilebilir (Son: ${gameState.lastLoanSeason})`; statusTxt.style.color = "var(--warning)"; takeLoanBtn.disabled = true; }
+        else { statusTxt.innerText = "Kredi çekilebilir"; statusTxt.style.color = "var(--accent)"; takeLoanBtn.disabled = false; }
+
+        if(!gameState.isSeasonStarted) { document.getElementById('season-start-banner').style.display = 'block'; document.getElementById('match-controls-btns').style.display = 'none'; } 
+        else { document.getElementById('season-start-banner').style.display = 'none'; document.getElementById('match-controls-btns').style.display = 'flex'; }
+
+        drawFaceToCanvas('faceCanvas', gameState.hairStyle, gameState.skinColor);
+        renderLeagueTable(); renderFixtureList(); renderGlobalLeagueTable(); renderTransferOffers(); renderTopPlayerTransfers(); renderMailList(); renderBettingMenu(); renderBallonDorTables(); renderChampionsTournamentUI(); updateMailBadge(); updateTransferBadge(); updateHistorySeasonDropdown(); drawPerfGraph();
+    }
+
+    function startNewSeasonMatches() { gameState.isSeasonStarted = true; showInGameAlert("⚽ Yeni sezon resmen başladı! Başarılar dileriz."); updateUI(); }
+
+    function safeShowTab(tabId) {
+        if(isMatchActive) { showInGameAlert("⚠️ Maç devam ederken başka bölümlere geçiş yapılamaz!", true); return; }
+        document.querySelectorAll('.section-box').forEach(el => el.classList.remove('active-section'));
+        document.querySelectorAll('.top-nav button').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active-section');
+        if(event && event.currentTarget) event.currentTarget.classList.add('active');
+        if(tabId === 'tab-mail') { gameState.mailList.forEach(m => m.read = true); updateMailBadge(); renderMailList(); }
+        if(tabId === 'tab-history') { updateHistorySeasonDropdown(); renderHistoryData(); }
+        if(tabId === 'tab-dashboard') drawPerfGraph();
+    }
+
+    function setTabsLocked(locked) {
+        document.querySelectorAll('.match-lockable').forEach(el => {
+            if(locked) { el.classList.add('disabled'); el.style.opacity = "0.35"; el.style.pointerEvents = "none"; }
+            else { el.classList.remove('disabled'); el.style.opacity = "1"; el.style.pointerEvents = "auto"; }
+        });
+    }
+
+    // CANLI SAHA (11v11)
+    let livePitchAnim = null;
+    let pitchPlayers = [];
+    let pitchBall = { x: 290, y: 75, targetNet: false };
+    const commentaryTexts = ["Tribünlerden muazzam bir 'Ole' sesleri yükseliyor!","Taraftarlar ayakta, destekliyor!","Orta alanda sert bir mücadele.","Müthiş bir pres var, tempoyu artırdılar!","Top şimdi sol kanatta, heyecan var.","Kale önünde büyük karambol!","Stadyumda bayraklar dalgalanıyor!"];
+
+    function initLivePitchPlayers() {
+        pitchPlayers = [];
+        for(let i=0; i<11; i++) pitchPlayers.push({ x: 50+Math.random()*200, y: 20+Math.random()*110, vx: (Math.random()-0.5)*1.5, vy: (Math.random()-0.5)*1.5, team: 'home' });
+        for(let i=0; i<11; i++) pitchPlayers.push({ x: 300+Math.random()*200, y: 20+Math.random()*110, vx: (Math.random()-0.5)*1.5, vy: (Math.random()-0.5)*1.5, team: 'away' });
+        pitchBall = { x: 290, y: 75, targetNet: false };
+    }
+
+    function drawLivePitch() {
+        let canvas = document.getElementById('livePitchCanvas'); if(!canvas) return;
+        let ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 2; ctx.strokeRect(20, 10, canvas.width - 40, canvas.height - 20);
+        ctx.beginPath(); ctx.moveTo(canvas.width / 2, 10); ctx.lineTo(canvas.width / 2, canvas.height - 10); ctx.stroke();
+        ctx.beginPath(); ctx.arc(canvas.width / 2, canvas.height / 2, 25, 0, Math.PI * 2); ctx.stroke();
+        // Qapılar
+        ctx.strokeRect(0, canvas.height/2 - 20, 20, 40); ctx.strokeRect(canvas.width-20, canvas.height/2 - 20, 20, 40);
+
+        pitchPlayers.forEach(p => {
+            p.x += p.vx; p.y += p.vy;
+            if(p.x < 30 || p.x > canvas.width - 30) p.vx *= -1;
+            if(p.y < 20 || p.y > canvas.height - 20) p.vy *= -1;
+            ctx.fillStyle = p.team === 'home' ? '#ef4444' : '#38bdf8';
+            ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Top animasiyası
+        if(pitchBall.targetNet === 'home') { pitchBall.x -= 3; pitchBall.y += (canvas.height/2 - pitchBall.y)*0.1; }
+        else if(pitchBall.targetNet === 'away') { pitchBall.x += 3; pitchBall.y += (canvas.height/2 - pitchBall.y)*0.1; }
+        else {
+            let rndP = pitchPlayers[Math.floor(Math.random()*pitchPlayers.length)];
+            pitchBall.x += (rndP.x - pitchBall.x) * 0.05; pitchBall.y += (rndP.y - pitchBall.y) * 0.05;
+        }
+        ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(pitchBall.x, pitchBall.y, 3, 0, Math.PI*2); ctx.fill();
+
+        if(isMatchActive) livePitchAnim = requestAnimationFrame(drawLivePitch);
+    }
+
+    function promptStartMatch() {
+        if(!gameState.isSeasonStarted) { showInGameAlert("⚠️ Lütfen önce sezona başlayın!", true); return; }
+        if(gameState.energy <= 0) { showInGameAlert("⚠️ Enerjiniz 0! Maç oynayamazsınız, yalnızca simüle edebilirsiniz.", true); return; }
+        if(gameState.energy < 15) showInGameAlert("⚠️ Dikkat: Enerjiniz çok düşük!");
+        showConfirmation("Maça başlamak istediğinizden emin misiniz?", () => { startMatch(); });
+    }
+
+    function startMatch() {
+        let nextFixt = gameState.fixture.find(f => !f.played);
+        if(!nextFixt) { triggerSeasonEndCeremony(); return; }
+        isMatchActive = true; setTabsLocked(true); playWhistleSound(); initLivePitchPlayers(); drawLivePitch();
+        currentMatch.home = nextFixt.isHome ? gameState.club : nextFixt.opponent;
+        currentMatch.away = nextFixt.isHome ? nextFixt.opponent : gameState.club;
+        currentMatch.homeScore = 0; currentMatch.awayScore = 0; currentMatch.minute = 0; currentMatch.isHome = nextFixt.isHome;
+        document.getElementById('home-team-name').innerText = currentMatch.home;
+        document.getElementById('away-team-name').innerText = currentMatch.away;
+        document.getElementById('match-score').innerText = "0 - 0";
+        document.getElementById('match-league-title').innerText = allLeaguesData[gameState.leagueCode].name;
+        document.getElementById('btn-start-match').style.display = 'none'; document.getElementById('btn-sim-match').style.display = 'none';
+        document.getElementById('match-event-text').innerText = "Maç başladı, sahada hareketlilik var!";
+        runParallelMatchSimulations(nextFixt);
+    }
+
+    let matchInterval = null;
+    function runParallelMatchSimulations(nextFixt) {
+        let tick = gameState.matchSpeed === 1000 ? 1000 : 500;
+        matchInterval = setInterval(() => {
+            currentMatch.minute += 1;
+            if(currentMatch.minute > 90) currentMatch.minute = 90;
+            document.getElementById('match-min').innerText = currentMatch.minute;
+            if(currentMatch.minute % 15 === 0) document.getElementById('match-ticker-box').innerText = `📢 [${currentMatch.minute}'] ${commentaryTexts[Math.floor(Math.random() * commentaryTexts.length)]}`;
+
+            if(Math.random() < 0.025) {
+                let homeAdv = giantClubs.includes(currentMatch.home) ? 0.65 : (giantClubs.includes(currentMatch.away) ? 0.35 : 0.5);
+                if(Math.random() < homeAdv) { currentMatch.homeScore++; pitchBall.targetNet = 'home'; } else { currentMatch.awayScore++; pitchBall.targetNet = 'away'; }
+                playGoalSound(); document.getElementById('match-score').innerText = `${currentMatch.homeScore} - ${currentMatch.awayScore}`;
+                setTimeout(()=> {pitchBall.targetNet = false; pitchBall.x = 290; pitchBall.y = 75;}, 1500);
+            }
+
+            let canGetOpportunity = gameState.welfare > 0;
+            let assistChanceBonus = gameState.position === 'CAM' ? 0.45 : 0.20;
+            if (canGetOpportunity && (currentMatch.minute === 25 || currentMatch.minute === 60 || currentMatch.minute === 80)) {
+                let randVal = Math.random(); let isBeginnerBoost = gameState.ovr < 65 ? 0.45 : 0.35;
+                if (randVal < isBeginnerBoost) {
+                    clearInterval(matchInterval);
+                    if (Math.random() < assistChanceBonus) triggerAssistMiniGame(nextFixt); else triggerStrikeMiniGame(nextFixt);
+                    return;
+                }
+            }
+            if(currentMatch.minute >= 90) { clearInterval(matchInterval); playWhistleSound(); finishMatch(nextFixt, false); }
+        }, tick);
+    }
+
+    function simulateMatchWithoutPlaying() {
+        if(!gameState.isSeasonStarted) { showInGameAlert("⚠️ Lütfen önce sezona başlayın!", true); return; }
+        let now = Date.now();
+        if (gameState.lastSimTimestamp && (now - gameState.lastSimTimestamp < 3000)) { showInGameAlert("❌ Simülasyonlar arası 3 saniye bekleyin!", true); return; }
+        let nextFixt = gameState.fixture.find(f => !f.played);
+        if(!nextFixt) { triggerSeasonEndCeremony(); return; }
+        if(gameState.energy <= 0) {
+            gameState.consecutiveSimCount++;
+            if(gameState.consecutiveSimCount > 3) { showInGameAlert("❌ Enerji 0 iken max 3 simülasyon yapılabilir!", true); return; }
+        } else gameState.consecutiveSimCount = 0;
+        
+        gameState.lastSimTimestamp = now;
+        currentMatch.home = nextFixt.isHome ? gameState.club : nextFixt.opponent;
+        currentMatch.away = nextFixt.isHome ? nextFixt.opponent : gameState.club;
+        currentMatch.isHome = nextFixt.isHome;
+        let hScore = Math.floor(Math.random() * 3); let aScore = Math.floor(Math.random() * 3);
+        if(giantClubs.includes(currentMatch.home) && !giantClubs.includes(currentMatch.away)) hScore++;
+        if(giantClubs.includes(currentMatch.away) && !giantClubs.includes(currentMatch.home)) aScore++;
+        currentMatch.homeScore = hScore; currentMatch.awayScore = aScore;
+        
+        let energyGain = Math.floor(Math.random() * 2) + 5;
+        gameState.energy = Math.min(100, gameState.energy + energyGain);
+        gameState.welfare = Math.max(0, gameState.welfare - 1);
+        playWhistleSound(); finishMatch(nextFixt, true);
+        showInGameAlert(`⚡ Maç simüle edildi!\n${currentMatch.home} ${hScore} - ${aScore} ${currentMatch.away}\n(+%${energyGain} Enerji, Refah: -%1)`);
+    }
+
+    function toggleMatchSpeed() {
+        gameState.matchSpeed = gameState.matchSpeed === 1000 ? 500 : 1000;
+        document.getElementById('btn-speed').innerText = gameState.matchSpeed === 500 ? "⏩ Hız: 2x" : "⏩ Hız: 1x";
+    }
+
+    // PAS VE ŞUT MİNİ OYUNLARI
+    let strikeCanvas, strikeCtx, targetX = 290, targetY = 70, powerVal = 10, powerDir = 4, isPowerRunning = false, strikeAnim = null;
+    let gkX = 290, gkDir = 3; let currentEpisodeType = "normal";
+    let movingTeammates = [], movingOpponents = [];
+
+    function triggerStrikeMiniGame(nextFixt) {
+        document.getElementById('sim-view').style.display = 'none'; document.getElementById('strike-view').style.display = 'block';
+        playOpportunitySound();
+        let episodes = ["normal", "freekick", "1v1", "header"];
+        currentEpisodeType = episodes[Math.floor(Math.random() * episodes.length)];
+        document.getElementById('mini-game-title').innerText = "⚡ GOL FIRSATI!";
+        document.getElementById('mini-game-desc').innerText = "Hedef çerçevesine tıkla ve doğru güçte şut çek!";
+        document.getElementById('btn-strike-action').innerText = "⚡ Gücü Onayla ve Vur!";
+        initMovingEntities(); setupCanvasListeners(); runStrikeLoop();
+    }
+
+    function triggerAssistMiniGame(nextFixt) {
+        document.getElementById('sim-view').style.display = 'none'; document.getElementById('strike-view').style.display = 'block';
+        playOpportunitySound(); currentEpisodeType = "assist";
+        document.getElementById('mini-game-title').innerText = "🧠 PAS VERME EKRANI";
+        document.getElementById('mini-game-desc').innerText = "Gösterici ile bir arkadaşını seç, oyuncular durduğunda Pası Ver'e bas. Bar ne kadar yüksekse asist ihtimali o kadar artar!";
+        document.getElementById('btn-strike-action').innerText = "👟 Pası Ver!";
+        gameState.playersFrozen = false;
+        initMovingEntities(); setupCanvasListeners(); runStrikeLoop();
+    }
+
+    function initMovingEntities() {
+        movingTeammates = []; movingOpponents = [];
+        for(let i=0; i<3; i++) {
+            movingTeammates.push({ x: 100+Math.random()*200, y: 50+Math.random()*120, vx: (Math.random()+1.5)*(Math.random()<0.5?1:-1), vy: (Math.random()+1)*(Math.random()<0.5?1:-1) });
+            movingOpponents.push({ x: 250+Math.random()*200, y: 40+Math.random()*140, vx: (Math.random()+2)*(Math.random()<0.5?1:-1), vy: (Math.random()+1.5)*(Math.random()<0.5?1:-1) });
+        }
+    }
+
+    function setupCanvasListeners() {
+        strikeCanvas = document.getElementById('pitchCanvas'); strikeCtx = strikeCanvas.getContext('2d');
+        powerVal = 10; isPowerRunning = true; targetX = 290; targetY = 70;
+        strikeCanvas.onclick = function(e) {
+            let rect = strikeCanvas.getBoundingClientRect();
+            let clickX = e.clientX - rect.left; let clickY = e.clientY - rect.top;
+            if(currentEpisodeType === 'assist') {
+                if(!gameState.playersFrozen) {
+                    gameState.playersFrozen = true; targetX = clickX; targetY = clickY;
+                    let hit = movingTeammates.find(t => Math.hypot(t.x - clickX, t.y - clickY) < 25);
+                    gameState.tempAssistTargetHit = !!hit;
+                }
+            } else {
+                targetX = Math.max(175, Math.min(405, clickX)); targetY = Math.max(25, Math.min(125, clickY));
+            }
+        };
+    }
+
+    function runStrikeLoop() {
+        function loop() {
+            if(!isPowerRunning) return;
+            powerVal += powerDir;
+            if(powerVal >= 100 || powerVal <= 5) powerDir *= -1;
+            document.getElementById('power-num').innerText = powerVal + "%";
+            document.getElementById('power-fill').style.width = powerVal + "%";
+            gkX += gkDir; if(gkX > 370 || gkX < 210) gkDir *= -1;
+
+            if(currentEpisodeType === 'assist' && !gameState.playersFrozen) {
+                movingTeammates.forEach(t => { t.x += t.vx*1.5; t.y += t.vy*1.5; if(t.x<50||t.x>strikeCanvas.width-50) t.vx*=-1; if(t.y<30||t.y>strikeCanvas.height-30) t.vy*=-1; });
+                movingOpponents.forEach(o => { o.x += o.vx*1.8; o.y += o.vy*1.8; if(o.x<50||o.x>strikeCanvas.width-50) o.vx*=-1; if(o.y<30||o.y>strikeCanvas.height-30) o.vy*=-1; });
+            }
+            drawStrikeScene();
+            strikeAnim = requestAnimationFrame(loop);
+        }
+        loop();
+    }
+
+    function drawStrikeScene() {
+        strikeCtx.fillStyle = "#15803d"; strikeCtx.fillRect(0, 0, strikeCanvas.width, strikeCanvas.height);
+        strikeCtx.strokeStyle = "#fff"; strikeCtx.lineWidth = 5; strikeCtx.strokeRect(170, 20, 240, 110);
+        strikeCtx.strokeStyle = "rgba(255,255,255,0.2)"; strikeCtx.lineWidth = 1;
+        for(let x=180; x<410; x+=15) { strikeCtx.beginPath(); strikeCtx.moveTo(x,20); strikeCtx.lineTo(x,130); strikeCtx.stroke(); }
+        for(let y=30; y<130; y+=15) { strikeCtx.beginPath(); strikeCtx.moveTo(170,y); strikeCtx.lineTo(410,y); strikeCtx.stroke(); }
+
+        if(currentEpisodeType !== 'assist') {
+            strikeCtx.fillStyle = "#facc15"; strikeCtx.beginPath(); strikeCtx.arc(gkX, 75, 10, 0, Math.PI*2); strikeCtx.fill();
+        }
+
+        movingTeammates.forEach(t => { strikeCtx.fillStyle = "#38bdf8"; strikeCtx.beginPath(); strikeCtx.arc(t.x, t.y, 7, 0, Math.PI*2); strikeCtx.fill(); });
+        movingOpponents.forEach(o => { strikeCtx.fillStyle = "#ef4444"; strikeCtx.beginPath(); strikeCtx.arc(o.x, o.y, 7, 0, Math.PI*2); strikeCtx.fill(); });
+        strikeCtx.fillStyle = "rgba(234,179,8,0.5)"; strikeCtx.beginPath(); strikeCtx.arc(targetX, targetY, 12, 0, Math.PI*2); strikeCtx.fill();
+    }
+
+    function lockPowerAndExecute() {
+        if(!isPowerRunning) return;
+        isPowerRunning = false;
+        
+        if(currentEpisodeType === 'assist') {
+            let passChance = powerVal * gameState.passQuality;
+            if(!gameState.tempAssistTargetHit) passChance = 3;
+            if(Math.random()*100 < passChance) {
+                if(!gameState.tempAssistTargetHit) showInGameAlert("Takım arkadaşın kötü pas olsa da yetişe bildi, daha iyi pas vermeye çalış!");
+                else showInGameAlert("Harika bir pas! Asist yaptın!");
+                gameState.assists++; gameState.careerAssists++;
+                if(currentMatch.isHome) currentMatch.homeScore++; else currentMatch.awayScore++;
+            } else { showInGameAlert("Pas başarısız! Top rakibe geçti."); }
+        } else {
+            let shootChance = powerVal * gameState.shootQuality;
+            if(currentEpisodeType === 'header') shootChance = powerVal * gameState.headerQuality;
+            if(Math.abs(gkX - targetX) < 20) shootChance *= 0.2;
+            if(Math.random()*100 < shootChance) {
+                showInGameAlert("Gooool! Harika bir vuruş!");
+                gameState.goals++; gameState.careerGoals++;
+                if(currentMatch.isHome) currentMatch.homeScore++; else currentMatch.awayScore++;
+            } else { showInGameAlert("Şut kaçtı veya kaleci kurtardı!"); }
+        }
+        document.getElementById('match-score').innerText = `${currentMatch.homeScore} - ${currentMatch.awayScore}`;
+        setTimeout(() => {
+            document.getElementById('strike-view').style.display = 'none';
+            document.getElementById('sim-view').style.display = 'block';
+            runParallelMatchSimulations(gameState.fixture.find(f => !f.played));
+        }, 2000);
+    }
+
+    function finishMatch(fixt, isSim) {
+        fixt.played = true; fixt.result = `${currentMatch.homeScore} - ${currentMatch.awayScore}`;
+        updateLeagueTableGlobal(gameState.leagueCode, currentMatch.home, currentMatch.away, currentMatch.homeScore, currentMatch.awayScore);
+        simulateGlobalWeek(); // Digər liqalar, Ballondor update
+        
+        let win = false, draw = false;
+        if(currentMatch.isHome) { if(currentMatch.homeScore > currentMatch.awayScore) win=true; else if(currentMatch.homeScore==currentMatch.awayScore) draw=true; }
+        else { if(currentMatch.awayScore > currentMatch.homeScore) win=true; else if(currentMatch.homeScore==currentMatch.awayScore) draw=true; }
+
+        if(!isSim) {
+            let matchXp = (win ? 150 : draw ? 50 : 0) + (gameState.goals * 30) + (gameState.assists * 15);
+            gameState.xp += matchXp;
+            gameState.energy = Math.max(0, gameState.energy - (Math.floor(Math.random()*10)+10));
+            document.getElementById('match-event-text').innerText = `Maç bitti. Kazanılan XP: ${matchXp}`;
+        }
+        
+        // Resolve Bets
+        if(gameState.activeBets.length > 0) {
+            gameState.activeBets.forEach(bet => {
+                let actualResult = bet.m.homeScore > bet.m.awayScore ? 'home' : (bet.m.homeScore === bet.m.awayScore ? 'draw' : 'away');
+                if(bet.pred === actualResult) {
+                    gameState.money += bet.amount * bet.odds;
+                    addMail("İddaa Merkezi", "Tebrikler Kazandınız!", `Yatırdığınız €${bet.amount} karşılığında €${bet.amount * bet.odds} kazandınız! Maç: ${bet.m.home} vs ${bet.m.away}`);
+                } else {
+                    addMail("İddaa Merkezi", "Kupon Yattı", `Tahmininiz tutmadı. Maç: ${bet.m.home} ${bet.m.homeScore}-${bet.m.awayScore} ${bet.m.away}.`);
+                }
+            });
+            gameState.activeBets = [];
+        }
+        generateWeeklyBets();
+
+        if(gameState.bankDebt > 0) {
+            let payment = Math.min(gameState.bankDebt, Math.floor(gameState.money * 0.1));
+            if(payment > 0) { gameState.money -= payment; gameState.bankDebt -= payment; addMail("Djava Bank", "Kredi Kesintisi", `Gelirlerinizden €${payment} kredi borcunuza kesildi.`); }
+        }
+        
+        isMatchActive = false; setTabsLocked(false);
+        document.getElementById('btn-start-match').style.display = 'block'; document.getElementById('btn-sim-match').style.display = 'block';
+        updateUI();
+
+        let unplayed = gameState.fixture.filter(f => !f.played);
+        if(unplayed.length === 0) triggerSeasonEndCeremony();
+    }
+
+    function simulateGlobalWeek() {
+        for(let code in allLeaguesData) {
+            let rounds = allLeaguesData[code].generatedFixtures;
+            let currentRound = rounds[gameState.matchWeek - 1];
+            if(currentRound) {
+                currentRound.forEach(m => {
+                    if(m.home === gameState.club || m.away === gameState.club) return;
+                    let hScore = Math.floor(Math.random()*3); let aScore = Math.floor(Math.random()*3);
+                    if(giantClubs.includes(m.home)) hScore++; if(giantClubs.includes(m.away)) aScore++;
+                    updateLeagueTableGlobal(code, m.home, m.away, hScore, aScore);
+                });
+            }
+        }
+        gameState.matchWeek++;
+
+        // Ballon d'Or Dynamic Update (Forma görə, OVR az təsirli)
+        topPlayersDB.forEach(p => {
+            if(Math.random() < 0.3) {
+                let pOvr = p.ovr / 100; // 0.7 - 0.9
+                if(p.isGK) {
+                    p.saves += Math.floor(Math.random() * 5 * pOvr);
+                    p.points = p.saves * 2;
+                } else {
+                    if(Math.random() < pOvr) p.goals += 1;
+                    if(Math.random() < pOvr) p.assists += 1;
+                    p.points = (p.goals * 3) + (p.assists * 1.5);
+                }
+            }
+        });
+    }
+
+    function updateLeagueTableGlobal(code, home, away, hScore, aScore) {
+        let table = gameState.globalTables[code];
+        let tHome = table.find(t => t.name === home); let tAway = table.find(t => t.name === away);
+        if(!tHome || !tAway) return;
+        tHome.played++; tAway.played++; tHome.gf += hScore; tHome.ga += aScore; tAway.gf += aScore; tAway.ga += hScore;
+        if(hScore > aScore) { tHome.won++; tHome.pts+=3; tAway.lost++; }
+        else if(hScore < aScore) { tAway.won++; tAway.pts+=3; tHome.lost++; }
+        else { tHome.drawn++; tAway.drawn++; tHome.pts++; tAway.pts++; }
+    }
+
+    function renderLeagueTable() {
+        let table = [...gameState.leagueTable].sort((a,b) => b.pts - a.pts || (b.gf-b.ga) - (a.gf-a.ga));
+        let tbody = document.getElementById('league-tbody'); tbody.innerHTML = "";
+        table.forEach((t, i) => {
+            let tr = document.createElement('tr'); if(t.name === gameState.club) tr.style.background = "#334155";
+            tr.innerHTML = `<td>${i+1}</td><td>${t.name}</td><td>${t.played}</td><td>${t.won}</td><td>${t.drawn}</td><td>${t.lost}</td><td>${t.gf-t.ga}</td><td><b>${t.pts}</b></td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderGlobalLeagueTable() {
+        let code = document.getElementById('global-league-select').value; if(!gameState.globalTables[code]) return;
+        let table = [...gameState.globalTables[code]].sort((a,b) => b.pts - a.pts || (b.gf-b.ga) - (a.gf-a.ga));
+        let tbody = document.getElementById('global-league-tbody'); tbody.innerHTML = "";
+        table.forEach((t, i) => { tbody.innerHTML += `<tr><td>${i+1}</td><td>${t.name}</td><td>${t.played}</td><td>${t.won}</td><td>${t.drawn}</td><td>${t.lost}</td><td>${t.gf-t.ga}</td><td><b>${t.pts}</b></td></tr>`; });
+    }
+
+    function renderFixtureList() {
+        let list = document.getElementById('fixture-list-container'); list.innerHTML = "";
+        gameState.fixture.forEach(f => {
+            let div = document.createElement('div');
+            div.style.background = "#1e293b"; div.style.padding = "10px"; div.style.marginBottom = "5px"; div.style.borderRadius = "6px";
+            div.innerHTML = `<b>Hafta ${f.week}:</b> ${f.isHome ? gameState.club : f.opponent} <b>${f.result}</b> ${f.isHome ? f.opponent : gameState.club}`;
+            if(f.played) div.style.opacity = "0.5";
+            list.appendChild(div);
+        });
+    }
+
+    function triggerSeasonEndCeremony() {
+        gameState.perfHistory.push({ season: gameState.season, ovr: gameState.ovr, goals: gameState.goals });
+        
+        let sortedPlayers = [...topPlayersDB].filter(p => !p.isGK).sort((a,b) => b.points - a.points);
+        let sortedGKs = [...topPlayersDB].filter(p => p.isGK).sort((a,b) => b.points - a.points);
+        
+        let bdWinner = sortedPlayers[0]; let gkWinner = sortedGKs[0]; let theBest = sortedPlayers[1];
+        gameState.djavaTheBest = theBest;
+        gameState.ballonDorHistory.unshift({ season: gameState.season, player: bdWinner.name, gk: gkWinner.name });
+        
+        let champTeams = [];
+        for(let code in gameState.globalTables) {
+            let st = [...gameState.globalTables[code]].sort((a,b) => b.pts - a.pts || (b.gf-b.ga) - (a.gf-a.ga));
+            champTeams.push(st[0].name);
+        }
+        gameState.championsTournament = champTeams.slice(0, 21);
+        gameState.championsHistory.unshift({ season: gameState.season, winner: champTeams[Math.floor(Math.random()*4)] }); // Basit turnuva sonucu
+
+        transferTopPlayers();
+        generateTransferOffers();
+        gameState.money += 25000;
+        
+        let text = `
+            <p>🌟 ${gameState.season} Sezonu tamamlandı! Lig bonusu olarak €25,000 kazandınız.</p>
+            <p>🏆 Ballon d'Or Kazananı: <b>${bdWinner.name}</b></p>
+            <p>🧤 En İyi Kaleci: <b>${gkWinner.name}</b></p>
+            <p>⭐ Djava The Best: <b>${theBest.name}</b></p>
+            <p>Bu sezon sizin performansınız: ${gameState.goals} Gol, ${gameState.assists} Asist</p>
+        `;
+        document.getElementById('season-end-details').innerHTML = text;
+        document.getElementById('season-end-modal').style.display = 'flex';
+        
+        gameState.historicalTables[gameState.season] = JSON.parse(JSON.stringify(gameState.globalTables));
+        gameState.season++; gameState.matchWeek = 1; gameState.isSeasonStarted = false;
+        gameState.goals = 0; gameState.assists = 0; gameState.loanTakenThisSeason = false;
+        initLeaguesAndFixtures(); resetTopPlayersSeasonStats(); updateUI();
+    }
+
+    function finishSeasonModalAndAdvance() {
+        document.getElementById('season-end-modal').style.display = 'none';
+        showInGameAlert("Yeni sezon verileri oluşturuldu! Gelen transfer tekliflerini 'Transferler' sekmesinden değerlendirebilirsiniz.");
+        safeShowTab('tab-transfers');
+    }
+
+    // TOP OYUNCU TRANSFERLERİ
+    function transferTopPlayers() {
+        gameState.topPlayerTransfers = [];
+        topPlayersDB.forEach(p => {
+            if(Math.random() < 0.15) {
+                let newClub = giantClubs[Math.floor(Math.random()*giantClubs.length)];
+                if(p.club !== newClub) {
+                    gameState.topPlayerTransfers.push(`${p.name} (${p.club} ➔ ${newClub})`);
+                    p.club = newClub;
+                }
+            }
+        });
+    }
+    function renderTopPlayerTransfers() {
+        let div = document.getElementById('top-player-transfers-container');
+        if(gameState.topPlayerTransfers.length === 0) div.innerHTML = "Geçen sezon önemli bir transfer olmadı.";
+        else div.innerHTML = gameState.topPlayerTransfers.join("<br>");
+    }
+
+    function generateTransferOffers() {
+        gameState.transferOffers = [];
+        let numOffers = Math.floor(Math.random() * 3) + 1;
+        for(let i=0; i<numOffers; i++) {
+            let possibleLeagues = Object.keys(allLeaguesData).filter(c => gameState.ovr >= 70 ? true : allLeaguesData[c].tier === 2 || allLeaguesData[c].locked === false);
+            let code = possibleLeagues[Math.floor(Math.random() * possibleLeagues.length)];
+            let team = allLeaguesData[code].teams[Math.floor(Math.random() * allLeaguesData[code].teams.length)];
+            let wage = Math.floor((gameState.ovr * 150) + (Math.random()*5000));
+            gameState.transferOffers.push({ leagueCode: code, team: team, wage: wage });
+        }
+        renderTransferOffers();
+    }
+
+    function renderTransferOffers() {
+        let cont = document.getElementById('transfer-offers-container'); cont.innerHTML = "";
+        if(gameState.transferOffers.length === 0) { cont.innerHTML = `<p style="color:#94a3b8;">Size gelen teklif yok.</p>`; return; }
+        gameState.transferOffers.forEach((off, idx) => {
+            cont.innerHTML += `<div style="background:#1e293b; padding:10px; border-radius:6px; margin-bottom:10px; border:1px solid #334155;">
+                <h4 style="margin:0 0 5px 0; color:var(--accent);">${off.team} (${allLeaguesData[off.leagueCode].name})</h4>
+                <p style="font-size:11px; margin:0 0 10px 0;">Teklif Edilen Maaş/Bonus: €${off.wage}</p>
+                <button class="btn-action" onclick="acceptTransfer(${idx})">Teklifi Kabul Et</button>
+            </div>`;
+        });
+    }
+    
+    function acceptTransfer(idx) {
+        let off = gameState.transferOffers[idx];
+        gameState.leagueCode = off.leagueCode; gameState.club = off.team; gameState.money += off.wage;
+        gameState.leagueTable = gameState.globalTables[gameState.leagueCode];
+        gameState.transferOffers = [];
+        let userMatch = allLeaguesData[gameState.leagueCode].generatedFixtures.map(r => r.find(m => m.home===gameState.club || m.away===gameState.club));
+        gameState.fixture.forEach((f, i) => {
+            if(userMatch[i]) { f.opponent = userMatch[i].home === gameState.club ? userMatch[i].away : userMatch[i].home; f.isHome = userMatch[i].home === gameState.club; }
+        });
+        showInGameAlert(`Tebrikler! ${off.team} kulübüne transfer oldunuz!`);
+        updateUI();
+    }
+
+    // ANTRENMAN (Güncellenmiş 400 XP Alt limit)
+    function trainSkill(type) {
+        let cost = 400; let ovrGain = 0;
+        if(type === 'tech') { cost = 400; ovrGain = 0.15; }
+        else if(type === 'phys') { cost = 500; ovrGain = 0.25; }
+        else if(type === 'shoot' || type === 'pass' || type === 'header') { cost = 450; ovrGain = 0.10; }
+
+        if(gameState.xp < cost) { showInGameAlert(`Yetersiz XP! ${cost} XP gerekli.`, true); return; }
+        gameState.xp -= cost; gameState.ovr = Math.min(99, gameState.ovr + ovrGain);
+        
+        if(type === 'shoot') gameState.shootQuality = Math.min(1.5, gameState.shootQuality + 0.05);
+        if(type === 'pass') gameState.passQuality = Math.min(1.5, gameState.passQuality + 0.05);
+        if(type === 'header') gameState.headerQuality = Math.min(1.5, gameState.headerQuality + 0.05);
+
+        showInGameAlert(`Antrenman başarılı! OVR +${ovrGain.toFixed(2)}`);
+        updateUI();
+    }
+    
+    function trainAdvancedSkill(type) {
+        let cost = type === 'heavy' ? 1000 : 2000;
+        let ovrGain = type === 'heavy' ? 0.80 : 1.80;
+        if(gameState.xp < cost) { showInGameAlert(`Yetersiz XP! ${cost} XP gerekli.`, true); return; }
+        document.getElementById('training-anim-container').style.display = 'block';
+        setTimeout(() => {
+            gameState.xp -= cost; gameState.ovr = Math.min(99, gameState.ovr + ovrGain);
+            document.getElementById('training-anim-container').style.display = 'none';
+            showInGameAlert(`Müthiş antrenman! OVR +${ovrGain.toFixed(2)}`);
+            updateUI();
+        }, 3000);
+    }
+
+    // MAĞAZA VE KRİSTAL (Enerji İçeceği %30, Full Enerji eklendi)
+    function buyItem(item, cost) {
+        if(gameState.money < cost) { showInGameAlert(`Yetersiz bakiye! €${cost} gerekli.`, true); return; }
+        gameState.money -= cost;
+        if(item === 'energy30') gameState.energy = Math.min(100, gameState.energy + 30);
+        if(item === 'energy100') gameState.energy = 100;
+        if(item === 'boots') gameState.welfare = Math.min(100, gameState.welfare + 10);
+        if(item === 'car') gameState.welfare = Math.min(100, gameState.welfare + 25);
+        if(item === 'villa') gameState.welfare = Math.min(100, gameState.welfare + 40);
+        if(item === 'watch') gameState.welfare = Math.min(100, gameState.welfare + 15);
+        if(item === 'jet') gameState.welfare = Math.min(100, gameState.welfare + 70);
+        showInGameAlert("Satın alma başarılı!"); updateUI();
+    }
+    
+    function buyCrystalItem(item, cost) {
+        if(gameState.crystals < cost) { showInGameAlert(`Yetersiz Kristal Top! ${cost} adet gerekli.`, true); return; }
+        gameState.crystals -= cost;
+        if(item === 'gold_boots') gameState.welfare = Math.min(100, gameState.welfare + 20);
+        if(item === 'ovr_boost') gameState.ovr = Math.min(99, gameState.ovr + 3);
+        if(item === 'max_energy') gameState.energy = 100;
+        showInGameAlert("Kristal marketten başarıyla alındı!"); updateUI();
+    }
+    
+    function convertCrystal(type) {
+        if(type === 'xp' && gameState.crystals >= 1) { gameState.crystals--; gameState.xp += 500; }
+        else if(type === 'money' && gameState.crystals >= 1) { gameState.crystals--; gameState.money += 15000; }
+        else if(type === 'debt' && gameState.crystals >= 3) { 
+            if(gameState.bankDebt <= 0) { showInGameAlert("Zaten borcunuz yok!"); return; }
+            gameState.crystals-=3; gameState.bankDebt=0; 
+        }
+        else { showInGameAlert("Yetersiz Kristal Top!", true); return; }
+        updateUI();
+    }
+
+    // İDDAA VE ÇARK
+    function generateWeeklyBets() {
+        gameState.weeklyBets = [];
+        let lCodes = Object.keys(allLeaguesData);
+        for(let i=0; i<5; i++) {
+            let c = lCodes[Math.floor(Math.random()*lCodes.length)];
+            let t = allLeaguesData[c].teams;
+            gameState.weeklyBets.push({ home: t[Math.floor(Math.random()*t.length)], away: t[Math.floor(Math.random()*t.length)], oddsHome: (1.5 + Math.random()*2).toFixed(2), oddsDraw: (2.5 + Math.random()*2).toFixed(2), oddsAway: (1.5 + Math.random()*2).toFixed(2) });
+        }
+    }
+    
+    function renderBettingMenu() {
+        let list = document.getElementById('betting-matches-list'); list.innerHTML = "";
+        gameState.weeklyBets.forEach((m, idx) => {
+            let isBetPlaced = gameState.activeBets.some(b => b.m.home === m.home && b.m.away === m.away);
+            let btnClass = isBetPlaced ? 'btn-action disabled' : 'btn-action';
+            let btnText = isBetPlaced ? 'Oynandı' : 'Oyna';
+            
+            list.innerHTML += `<div class="bet-match-item">
+                <div style="flex:1;"><b>${m.home} vs ${m.away}</b></div>
+                <div style="display:flex; gap:5px;">
+                    <button class="${btnClass}" onclick="placeBet(${idx}, 'home', ${m.oddsHome})" ${isBetPlaced?'disabled':''}>1 (${m.oddsHome})</button>
+                    <button class="${btnClass}" onclick="placeBet(${idx}, 'draw', ${m.oddsDraw})" ${isBetPlaced?'disabled':''}>X (${m.oddsDraw})</button>
+                    <button class="${btnClass}" onclick="placeBet(${idx}, 'away', ${m.oddsAway})" ${isBetPlaced?'disabled':''}>2 (${m.oddsAway})</button>
+                </div>
+            </div>`;
+        });
+    }
+    
+    function placeBet(idx, pred, odds) {
+        let amount = parseInt(prompt("Yatırılacak tutar (€):", "100"));
+        if(isNaN(amount) || amount <= 0 || amount > gameState.money) { showInGameAlert("Geçersiz tutar veya bakiye yetersiz!", true); return; }
+        gameState.money -= amount;
+        gameState.activeBets.push({ m: gameState.weeklyBets[idx], pred: pred, odds: odds, amount: amount });
+        showInGameAlert(`Bahis alındı! ${gameState.weeklyBets[idx].home} - ${gameState.weeklyBets[idx].away} (Tutar: €${amount})`);
+        renderBettingMenu(); updateUI();
+    }
+
+    function spinWheel() {
+        if(gameState.wheelSpinsLeft <= 0) { showInGameAlert("Çevirme hakkınız kalmadı!", true); return; }
+        if(gameState.money < 500) { showInGameAlert("Bakiye yetersiz!", true); return; }
+        gameState.money -= 500; gameState.wheelSpinsLeft--;
+        let resTxt = document.getElementById('wheel-result-msg'); resTxt.innerText = "Dönüyor...";
+        setTimeout(() => {
+            let rand = Math.random();
+            if(rand < 0.05) { gameState.crystals++; resTxt.innerText = "💎 TEBRİKLER! KRİSTAL TOP ÇIKTI!"; resTxt.style.color = "var(--crystal-blue)"; }
+            else if(rand < 0.3) { gameState.money += 1500; resTxt.innerText = "💵 €1,500 kazandınız!"; resTxt.style.color = "var(--accent)"; }
+            else if(rand < 0.6) { gameState.xp += 300; resTxt.innerText = "⚡ 300 XP kazandınız!"; resTxt.style.color = "#3b82f6"; }
+            else { resTxt.innerText = "❌ Maalesef boş çıktı."; resTxt.style.color = "var(--danger)"; }
+            updateUI();
+        }, 1500);
+    }
+
+    // POSTA VE BANKA
+    function addMail(sender, subject, body) { gameState.mailList.unshift({ sender, subject, body, read: false }); updateMailBadge(); }
+    function updateMailBadge() {
+        let unread = gameState.mailList.filter(m=>!m.read).length;
+        let badge = document.getElementById('mail-badge');
+        if(unread>0) { badge.style.display='block'; badge.innerText=unread; } else badge.style.display='none';
+    }
+    function renderMailList() {
+        let cont = document.getElementById('mail-list-container'); cont.innerHTML = "";
+        if(gameState.mailList.length === 0) { cont.innerHTML = "<p style='color:#94a3b8;'>Posta kutunuz boş.</p>"; return; }
+        gameState.mailList.forEach((m, i) => {
+            let cl = m.read ? 'mail-item' : 'mail-item unread';
+            cont.innerHTML += `<div class="${cl}" onclick="readMail(${i})"><b>${m.sender}</b>: ${m.subject}</div>`;
+        });
+    }
+    function readMail(idx) {
+        let m = gameState.mailList[idx]; m.read = true;
+        showInGameAlert(`KİMDEN: ${m.sender}\n\n${m.body}`);
+        renderMailList(); updateMailBadge();
+    }
+    
+    function takeDjavaLoan() {
+        if(gameState.bankDebt > 0 || (gameState.season - gameState.lastLoanSeason < 2 && gameState.lastLoanSeason !== 0)) return;
+        gameState.money += 10000; gameState.bankDebt = 12000; gameState.lastLoanSeason = gameState.season;
+        showInGameAlert("10.000€ Kredi çekildi. Geri ödemesi maç gelirlerinden %10 kesilerek yapılacaktır.");
+        updateUI();
+    }
+
+    // BALLON D'OR & CHAMPIONS
+    function renderBallonDorTables() {
+        let sortedP = [...topPlayersDB].filter(p=>!p.isGK).sort((a,b)=>b.points - a.points);
+        let tb = document.getElementById('ballondor-tbody'); tb.innerHTML = "";
+        sortedP.slice(0, 10).forEach((p,i) => {
+            tb.innerHTML += `<tr><td>${i+1}</td><td>${p.name}</td><td>${p.club}</td><td>${p.ovr}</td><td>${p.goals}/${p.assists}</td><td>${p.points}</td></tr>`;
+        });
+        
+        let sortedG = [...topPlayersDB].filter(p=>p.isGK).sort((a,b)=>b.points - a.points);
+        let gtb = document.getElementById('gk-rankings-tbody'); gtb.innerHTML = "";
+        sortedG.slice(0, 5).forEach((p,i) => {
+            gtb.innerHTML += `<tr><td>${i+1}</td><td>${p.name}</td><td>${p.club}</td><td>${p.ovr}</td><td>${p.saves}</td><td>${p.points}</td></tr>`;
+        });
+
+        if(gameState.djavaTheBest) document.getElementById('djava-the-best-box').innerHTML = `Son Kazanan: <b>${gameState.djavaTheBest.name}</b> (${gameState.djavaTheBest.club})`;
+        
+        let hList = document.getElementById('ballondor-history-list'); hList.innerHTML = "";
+        if(gameState.ballonDorHistory.length === 0) hList.innerHTML = "<p style='font-size:11px; color:#94a3b8;'>Henüz kayıt yok.</p>";
+        else gameState.ballonDorHistory.forEach(h => hList.innerHTML += `<div style="background:#1e293b; padding:8px; margin-bottom:5px; border-radius:4px; font-size:11px;"><b>${h.season}</b> - Oyuncu: ${h.player} | Kaleci: ${h.gk}</div>`);
+    }
+
+    function renderChampionsTournamentUI() {
+        let tb = document.getElementById('champions-table-tbody'); tb.innerHTML = "";
+        if(gameState.championsTournament) {
+            gameState.championsTournament.forEach((t, i) => { tb.innerHTML += `<tr><td>${i+1}</td><td>${t}</td><td>4</td><td>${Math.floor(Math.random()*12)}</td><td>+${Math.floor(Math.random()*10)}</td></tr>`; });
+        } else { tb.innerHTML = "<tr><td colspan='5'>Henüz veri yok.</td></tr>"; }
+
+        let hList = document.getElementById('champions-history-box'); hList.innerHTML = "";
+        if(gameState.championsHistory.length === 0) hList.innerHTML = "Kayıt yok.";
+        else gameState.championsHistory.forEach(h => hList.innerHTML += `<div><b>${h.season} Şampiyonu:</b> ${h.winner}</div>`);
+    }
+
+    function updateTransferBadge() { document.getElementById('transfer-badge').style.display = gameState.transferOffers.length>0?'inline-block':'none'; document.getElementById('transfer-badge').innerText = gameState.transferOffers.length; }
+    
+    function updateHistorySeasonDropdown() {
+        let sel = document.getElementById('history-season-select'); sel.innerHTML = "";
+        Object.keys(gameState.historicalTables).forEach(s => { sel.innerHTML += `<option value="${s}">${s} Sezonu</option>`; });
+    }
+    
+    function renderHistoryData() {
+        let s = document.getElementById('history-season-select').value; let l = document.getElementById('history-league-select').value;
+        if(!s || !gameState.historicalTables[s] || !gameState.historicalTables[s][l]) return;
+        let table = [...gameState.historicalTables[s][l]].sort((a,b) => b.pts - a.pts || (b.gf-b.ga) - (a.gf-a.ga));
+        let tbody = document.getElementById('history-league-tbody'); tbody.innerHTML = "";
+        table.forEach((t, i) => { tbody.innerHTML += `<tr><td>${i+1}</td><td>${t.name}</td><td>${t.played}</td><td>${t.won}</td><td>${t.drawn}</td><td>${t.lost}</td><td>${t.gf-t.ga}</td><td><b>${t.pts}</b></td></tr>`; });
+    }
+
+    function drawPerfGraph() {
+        let canvas = document.getElementById('perfGraph'); if(!canvas) return;
+        let ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if(gameState.perfHistory.length === 0) { ctx.fillStyle = "#94a3b8"; ctx.font="12px sans-serif"; ctx.fillText("Kariyer geçmişi henüz oluşmadı.", 10, 20); return; }
+        
+        ctx.strokeStyle = "#334155"; ctx.lineWidth = 1;
+        for(let i=0; i<=5; i++) { ctx.beginPath(); ctx.moveTo(0, i*(canvas.height/5)); ctx.lineTo(canvas.width, i*(canvas.height/5)); ctx.stroke(); }
+        
+        ctx.strokeStyle = varAccent = "#22c55e"; ctx.lineWidth = 3; ctx.beginPath();
+        let step = canvas.width / Math.max(1, (gameState.perfHistory.length - 1));
+        gameState.perfHistory.forEach((h, i) => {
+            let x = i * step; let y = canvas.height - ((h.ovr - 40) * (canvas.height / 60));
+            if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+            ctx.fillStyle = "#fff"; ctx.arc(x, y, 4, 0, Math.PI*2); ctx.fill(); ctx.moveTo(x,y);
+        });
+        ctx.stroke();
+    }
+
+    // KAYIT SİSTEMİ
+    function saveGame() { localStorage.setItem('upfc_save', JSON.stringify(gameState)); showInGameAlert("Oyun başarıyla kaydedildi!"); }
+    function loadGame() {
+        let s = localStorage.getItem('upfc_save');
+        if(s) { gameState = JSON.parse(s); updateUI(); showInGameAlert("Kayıt yüklendi!"); } else showInGameAlert("Kayıt dosyası bulunamadı!", true);
+    }
+    function exitToMenu() {
+        showConfirmation("Menüye dönmek istiyor musunuz? Kaydedilmemiş veriler kaybolur.", () => {
+            if(musicInterval) clearInterval(musicInterval); isMusicPlaying=false;
+            document.getElementById('game-screen').style.display='none'; document.getElementById('splash-screen').style.display='block';
+        });
+    }
+
+</script>
+</body>
+</html>
